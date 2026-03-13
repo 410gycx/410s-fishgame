@@ -130,7 +130,7 @@ html, body {
 }
 .char-box.wuqiong {
   right: 5%;
-  bottom: 26%;
+  bottom: 27%;
   width: 52.5%;
   height: 73.5%;
   animation: rolyPolyRight 3.2s ease-in-out infinite;
@@ -500,11 +500,17 @@ html, body {
     }
 
     class SeaCreature {
-        constructor(isSeaweed = false, spawnX = null) {
-          this.el = document.createElement('div');
-          this.el.className = 'fish';
-          this.isPanic = false;
-          
+  constructor(isSeaweed = false, spawnX = null) {
+    this.el = document.createElement('div');
+    this.el.className = 'fish';
+    this.isPanic = false;
+    this.layer = null;  // 新增：记录所在层
+    this.slot = null;   // 新增：记录所在槽位
+    // ... 其余构造函数代码不变 ...
+  }
+  // ... 其余方法不变 ...
+}
+  
           if (isSeaweed) {
             this.type = 'seaweed';
             this.icon = '🌿';
@@ -583,37 +589,65 @@ html, body {
         }
         
         moveToPlate() {
-          this.state = 'plate';
-          this.el.classList.remove('seaweed');
-          plate.appendChild(this.el);
-          this.el.style.position = 'absolute';
-          
-          const maxStack = 5;
-          const stackHeight = plateStack.length;
-          const layerOffsetY = -15 * Math.min(stackHeight, maxStack);
-          const randomX = (Math.random() - 0.5) * 20;
-          const randomRot = (Math.random() - 0.5) * 30;
-          
-          let targetIndex = stackHeight;
-          if (stackHeight >= maxStack) {
-            targetIndex = Math.floor(Math.random() * maxStack);
-            plateStack[targetIndex].el.style.left = `calc(50% + ${(Math.random() - 0.5) * 20}px)`;
-            plateStack[targetIndex].el.style.top = `calc(50% + ${-15 * targetIndex + (Math.random() - 0.5) * 5}px)`;
-            plateStack[targetIndex].el.style.transform = `translate(-50%, -50%) rotate(${(Math.random() - 0.5) * 30}deg)`;
-          }
-          
-          this.el.style.left = `calc(50% + ${randomX}px)`;
-          this.el.style.top = `calc(50% + ${layerOffsetY}px)`;
-          this.el.style.transform = `translate(-50%, -50%) rotate(${randomRot}deg)`;
-          if(this.dead) this.el.style.transform += ' scaleY(-1)';
-          
-          if (stackHeight < maxStack) {
-            plateStack.push(this);
-          } else {
-            plateStack[targetIndex] = this;
-          }
-          this.stopDeathTimer();
-        }
+  this.state = 'plate';
+  this.el.classList.remove('seaweed');
+  plate.appendChild(this.el);
+  this.el.style.position = 'absolute';
+
+  // 分层配置：每层最多鱼数 + 垂直偏移
+  const layers = [
+    { max: 5, offsetY: 0 },    // 第1层（底层）：5条，贴盘子
+    { max: 3, offsetY: -18 },  // 第2层：3条，往上18px
+    { max: 2, offsetY: -36 }   // 第3层：2条，再往上18px
+  ];
+  let targetLayer = 0;
+  let targetSlot = 0;
+
+  // 找到第一个有空位的层
+  for (let i = 0; i < layers.length; i++) {
+    const layerCount = plateStack.filter(f => f.layer === i).length;
+    if (layerCount < layers[i].max) {
+      targetLayer = i;
+      targetSlot = layerCount;
+      break;
+    }
+    // 所有层满了，随机替换底层
+    if (i === layers.length - 1) {
+      targetLayer = 0;
+      const bottomLayerSlots = plateStack.filter(f => f.layer === 0);
+      targetSlot = Math.floor(Math.random() * bottomLayerSlots.length);
+      // 把被替换的鱼挪到随机位置
+      const replacedFish = bottomLayerSlots[targetSlot];
+      replacedFish.el.style.left = `calc(50% + ${(Math.random() - 0.5) * 25}px)`;
+      replacedFish.el.style.top = `calc(50% + ${layers[replacedFish.layer].offsetY + (Math.random() - 0.5) * 8}px)`;
+      replacedFish.el.style.transform = `translate(-50%, -50%) rotate(${(Math.random() - 0.5) * 40}deg)`;
+    }
+  }
+
+  // 计算当前鱼的位置：层偏移 + 随机左右/旋转
+  const layerOffsetY = layers[targetLayer].offsetY;
+  const randomX = (Math.random() - 0.5) * (30 - targetLayer * 5); // 上层晃动更小
+  const randomRot = (Math.random() - 0.5) * (40 - targetLayer * 10);
+
+  this.el.style.left = `calc(50% + ${randomX}px)`;
+  this.el.style.top = `calc(50% + ${layerOffsetY}px)`;
+  this.el.style.transform = `translate(-50%, -50%) rotate(${randomRot}deg)`;
+  if (this.dead) this.el.style.transform += ' scaleY(-1)';
+
+  // 记录当前鱼所在的层和槽位
+  this.layer = targetLayer;
+  this.slot = targetSlot;
+
+  // 更新堆叠数组：如果是替换底层，直接替换；否则push
+  if (targetLayer === 0 && plateStack.filter(f => f.layer === 0).length >= layers[0].max) {
+    const replaceIndex = plateStack.findIndex(f => f.layer === 0 && f.slot === targetSlot);
+    plateStack[replaceIndex] = this;
+  } else {
+    plateStack.push(this);
+  }
+
+  this.stopDeathTimer();
+}
 
         initDrag() {
           let startX, startY, initLeft, initTop;

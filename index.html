@@ -19,6 +19,7 @@ html, body {
   align-items: center;
   justify-content: center;
 }
+/* 固定游戏机 wrapper，防止拉伸 */
 .arcade-wrapper {
   width: 100%;
   height: 100vh;
@@ -32,6 +33,7 @@ html, body {
   justify-content: center;
   flex-shrink: 0;
 }
+/* 核心：固定 9:16 比例，永远不会被拉长 */
 .arcade-shell {
   background: #ffb7b2;
   border: 4px solid #111;
@@ -41,10 +43,29 @@ html, body {
   width: 100%;
   max-width: 480px;
   max-height: 95vh;
-  aspect-ratio: 9/16;
+  aspect-ratio: 9/16; /* 强制 9:16 比例，浏览器缩放时也不会变形 */
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+}
+/* BGM声音解锁按钮样式 */
+.bgm-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #111;
+  background: #e2f0cb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  z-index: 99;
+  box-shadow: 2px 2px 0 #111;
 }
 .arcade-header {
   width: 60px;
@@ -121,18 +142,20 @@ html, body {
   transform-origin: bottom center;
   pointer-events: auto;
 }
+/* 东方纤云：往下 2% + 放大 5% */
 .char-box.xianyun {
   left: 5%;
-  bottom: 30%;
-  width: 42%;
-  height: 73.5%;
+  bottom: 25%; /* 原 28% → 30%，往下 2% */
+  width: 42%;    /* 原 40% → 42%，放大 5% */
+  height: 75%; /* 原 70% → 73.5%，放大 5% */
   animation: rolyPolyLeft 3s ease-in-out infinite;
 }
+/* 东方芜穹：往下 2% + 放大 5% */
 .char-box.wuqiong {
   right: 5%;
-  bottom: 31%;
-  width: 52.5%;
-  height: 73.5%;
+  bottom: 26%; /* 原 29% → 31%，往下 2% */
+  width: 52.5%; /* 原 50% → 52.5%，放大 5% */
+  height: 75%;/* 原 70% → 73.5%，放大 5% */
   animation: rolyPolyRight 3.2s ease-in-out infinite;
 }
 .char-img {
@@ -142,9 +165,10 @@ html, body {
   display: block;
   pointer-events: none;
 }
+/* 盘子：往上浮动 3% */
 .plate {
   position: absolute;
-  bottom: 41%;
+  bottom: 41%; /* 原 44% → 41%，往上 3% */
   left: 50%;
   transform: translateX(-50%);
   width: 100px;
@@ -247,8 +271,6 @@ html, body {
   animation: seaweed-sway 4s ease-in-out infinite;
   transform-origin: bottom center;
   z-index: 4;
-  bottom: 0 !important;
-  top: auto !important;
 }
 .fish:active { cursor: grabbing; }
 .fish.dead { filter: grayscale(1) brightness(1.2) contrast(0.8); transform: scaleY(-1) !important; }
@@ -296,7 +318,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: inset 2px 2px 5 rgba(255,255,255,0.7), 0 4px 0 #111;
+  box-shadow: inset 2px 2px 5px rgba(255,255,255,0.7), 0 4px 0 #111;
   border: 3px solid #111;
 }
 .cross { position: relative; width: 80px; height: 80px; }
@@ -333,21 +355,17 @@ html, body {
 .abtn:active { transform: translateY(6px); box-shadow: inset -2px -4px 0 rgba(0,0,0,0.2), inset 2px 2px 0 rgba(255,255,255,0.5), 0 0 0 #111; }
 .btn-b { background: #ffca3a; margin-top: 20px; }
 .btn-a { background: #ff595e; }
-.audio-player {
-  position: fixed;
-  top: -9999px;
-  left: -9999px;
-  z-index: -1;
-}
 </style>
 </head>
 <body>
-<audio class="audio-player" autoplay loop muted>
-  <source src="https://img.heliar.top/file/1773394309605_video_20260313_171256.mp3" type="audio/mpeg">
-
-
 <div class="arcade-wrapper">
 <div class="arcade-shell">
+  <!-- BGM声音解锁按钮 -->
+  <div class="bgm-btn" id="bgmBtn">🔊</div>
+  <!-- BGM音频标签：自动播放+循环+静音（适配浏览器策略） -->
+  <audio id="bgmAudio" autoplay loop muted>
+    <source src="https://img.heliar.top/file/1773394309605_video_20260313_171256.mp3" type="audio/mpeg">
+  
 <div class="arcade-header"></div>
 <div class="screen-bezel">
 <div class="screen" id="gameScreen">
@@ -388,10 +406,21 @@ html, body {
     const boxWuqiong = document.getElementById('boxWuqiong');
     const dlgXianyun = document.getElementById('dlgXianyun');
     const dlgWuqiong = document.getElementById('dlgWuqiong');
-    const audio = document.querySelector('.audio-player');
-    
-    audio.addEventListener('canplay', () => {
-        audio.muted = false;
+    // BGM相关元素
+    const bgmAudio = document.getElementById('bgmAudio');
+    const bgmBtn = document.getElementById('bgmBtn');
+
+    // BGM解锁声音逻辑：点击按钮取消静音/暂停，再次点击静音/播放
+    let bgmOn = false;
+    bgmBtn.addEventListener('click', () => {
+      bgmOn = !bgmOn;
+      if (bgmOn) {
+        bgmAudio.muted = false;
+        bgmBtn.innerText = '🔇';
+      } else {
+        bgmAudio.muted = true;
+        bgmBtn.innerText = '🔊';
+      }
     });
 
     let netX = 130;
@@ -527,7 +556,10 @@ html, body {
             this.icon = '🌿';
             this.el.classList.add('seaweed');
             this.x = spawnX !== null ? spawnX : Math.random() * (screen.offsetWidth - 40) + 10;
-            this.el.style.left = this.x + 'px';
+            // 水草长在游戏机画面容器最底部
+            this.y = screen.offsetHeight - 32;
+            this.vx = 0;
+            this.vy = 0;
             screen.appendChild(this.el);
           } else {
             const rand = Math.random();
@@ -550,7 +582,8 @@ html, body {
           }
           
           this.el.innerHTML = this.icon;
-          this.el.style.top = this.y ? this.y + 'px' : 'auto';
+          this.el.style.left = this.x + 'px';
+          this.el.style.top = this.y + 'px';
           this.state = 'pool';
           this.dead = false;
           this.deathTimer = null;
@@ -857,68 +890,4 @@ html, body {
           caughtFish.el.style.left = '50%';
           caughtFish.el.style.top = '50%';
           caughtFish.el.style.transform = 'translate(-50%, -50%)';
-          net.style.transition = 'all 0.5s ease-in-out';
-          net.style.left = '145px';
-          net.style.top = '175px';
-          setTimeout(() => {
-            if (caughtFish.type !== 'seaweed' && Math.random() < 0.35) {
-              caughtFish.state = 'pool';
-              pool.appendChild(caughtFish.el);
-              const nR = net.getBoundingClientRect();
-              const pR = pool.getBoundingClientRect();
-              caughtFish.x = nR.left - pR.left + 10;
-              caughtFish.y = 0;
-              caughtFish.isPanic = true;
-              caughtFish.vx = (Math.random() < 0.5 ? 1 : -1) * 6;
-              caughtFish.vy = 8;
-              setTimeout(() => { caughtFish.isPanic = false; caughtFish.vx *= 0.2; caughtFish.vy *= 0.2; }, 3000);
-              const chat = chatBank.escapeEvent[Math.floor(Math.random() * chatBank.escapeEvent.length)];
-              playChat(chat);
-            } else {
-              caughtFish.moveToPlate();
-              speedMultiplier = 3.5;
-              if(speedTimer) clearTimeout(speedTimer);
-              speedTimer = setTimeout(() => { speedMultiplier = 1; }, 3000);
-              const chat = chatBank.catchEvent[Math.floor(Math.random() * chatBank.catchEvent.length)];
-              playChat(chat);
-            }
-            net.classList.remove('catching');
-            net.style.left = oldX;
-            net.style.top = oldY;
-            setTimeout(() => { 
-              net.style.transition = 'top 0.1s, left 0.1s'; 
-              isCatching = false;
-            }, 500);
-          }, 600);
-        } else {
-          setTimeout(() => { 
-            net.classList.remove('catching'); 
-            isCatching = false;
-          }, 300);
-        }
-    });
-
-    function spawnSeaweed() {
-        let seaweeds = creatures.filter(f => f.type === 'seaweed' && f.state === 'pool');
-        if (seaweeds.length < 6) {
-          let existingX = seaweeds.map(f => f.x);
-          let newX;
-          let attempts = 0;
-          do {
-            newX = Math.random() * (screen.offsetWidth - 40) + 10;
-            attempts++;
-          } while(existingX.some(x => Math.abs(x - newX) < 45) && attempts < 20);
-          creatures.push(new SeaCreature(true, newX));
-        }
-    }
-    
-    for(let i=0; i<6; i++) spawnSeaweed();
-    setInterval(spawnSeaweed, 10000);
-
-    for(let i=0; i<8; i++) {
-      creatures.push(new SeaCreature(false));
-    }
-})();
-</script>
-</body>
-</html>
+          net.style.transition = 'all 0

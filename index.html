@@ -123,14 +123,14 @@ html, body {
 }
 .char-box.xianyun {
   left: 5%;
-  bottom: 30%;
+  bottom: 25%;
   width: 42%;
   height: 73.5%;
   animation: rolyPolyLeft 3s ease-in-out infinite;
 }
 .char-box.wuqiong {
   right: 5%;
-  bottom: 31%;
+  bottom: 26%;
   width: 52.5%;
   height: 73.5%;
   animation: rolyPolyRight 3.2s ease-in-out infinite;
@@ -805,7 +805,7 @@ html, body {
         netX += dx * screen.offsetWidth * 0.01;
         netY += dy * screen.offsetHeight * 0.01;
         netX = Math.max(0, Math.min(screen.offsetWidth - 46, netX));
-        netY = Math.max(0, Math.min(screen.offsetHeight * 0.5 - 46, netY));
+        netY = Math.max(0, Math.min(screen.offsetHeight - 46, netY));
         net.style.left = netX + 'px';
         net.style.top = netY + 'px';
         triggerFishingChat();

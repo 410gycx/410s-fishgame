@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>大穹捞鱼</title>
+<title>大穹捞鱼机</title>
 <style>
 * {
   margin: 0;
@@ -378,15 +378,20 @@ html, body {
           { s1: 'x', t1: "家主大人，那条鱼是不是在瞪我？", s2: 'w', t2: "它大概是嫉妒小美人长得好看吧。" },
           { s1: 'x', t1: "这水底怎么这么多奇奇怪怪的鱼……", s2: 'w', t2: "专心点，小心它咬你的手。" },
           { s1: 'x', t1: "等会儿捞完了我们去吃驴肉火烧吧！", s2: 'w', t2: "好啊，依你。" },
-          { s1: 'x', t1: "一条两条三条四条…不知道口感怎么样…" }
+          { s1: 'x', t1: "一条两条三条四条…不知道口感怎么样…" },
+          { s1: 'x', t1: "你说这些鱼天天游，不会累吗？", s2: 'w', t2: "大概是不用上班吧。" },
+          { s1: 'x', t1: "你平时也会来这里摸鱼吗？", s2: 'w', t2: "我不摸鱼，摸你。" },
+          { s1: 'x', t1: "家主大人，你说灵池养的灵鱼…它晚上还用睡觉吗？", s2: 'w', t2: "小美人操心的事还挺多。" },
+          { s1: 'w', t1: "你站那么远干嘛，怕我把你推下去？", s2: 'x', t2: "额…我怕你掉下去，我得接着。" }
         ],
         fishing: [
           { s1: 'x', t1: "别抢别抢，这条我看上的！", s2: 'w', t2: "好好好，都依你。" },
           { s1: 'x', t1: "家主大人你别挤我！", s2: 'w', t2: "哦？可是空间就这么大呀。" },
           { s1: 'x', t1: "快捞快捞，它游跑了！", s2: 'w', t2: "急什么，跑不出我的手心。" },
-          { s1: 'w', t1: "小美人，你这准头不太行啊，要不要我手、把、手教你？", s2: 'x', t2: "哈哈…谢绝了哈。" },
+          { s1: 'w', t1: "小美人，你这准头不太行啊，要不要我手、把、手教你？", s2: 'x', t2: "哈哈…我谢绝了！" },
           { s1: 'x', t1: "看我的！", s2: 'w', t2: "注意安全，别掉下去了。" },
-          { s1: 'w', t1: "小美人想要哪条？我帮你捞。", s2: 'x', t2: "不用帮忙，我自己来！" }
+          { s1: 'w', t1: "小美人想要哪条？我帮你捞。", s2: 'x', t2: "不用帮忙，我自己来。" },
+          { s1: 'x', t1: "我感觉我今天能捞爆这个池子。" }
         ],
         eatLive: [
           { s1: 'x', t1: "好吃！", s2: 'w', t2: "慢点吃，没人跟你抢。" },
@@ -395,9 +400,10 @@ html, body {
           { s1: 'x', t1: "嗯？这鱼竟然有点甜？", s2: 'w', t2: "玄铭宗的灵泉水养出来的，自然不同。" }
         ],
         eatShrimp: [
-          { s1: 'x', t1: "哇！是大虾！好吃！", s2: 'w', t2: "连壳都吃？真不挑。" },
+          { s1: 'x', t1: "哇！是大虾！这个我喜欢！", s2: 'w', t2: "连壳一起吞？真不挑。" },
           { s1: 'x', t1: "虾肉好甜！", s2: 'w', t2: "慢点，别被须子扎到。" },
-          { s1: 'x', t1: "嘿嘿，你吃不到，归我了！", s2: 'w', t2: "你看你这护食的样。" }
+          { s1: 'x', t1: "嘿嘿，你吃不到，归我了！", s2: 'w', t2: "你看你这护食的样。" },
+          { s1: 'x', t1: "虾肉就是香，比鱼好吃！", s2: 'w', t2: "行，以后多给你捞虾。" },
         ],
         eatDead: [
           { s1: 'x', t1: "呕...这鱼臭了！！！🤢", s2: 'w', t2: "哎呀，是谁乱投喂死物。" },
@@ -423,7 +429,8 @@ html, body {
         escapeEvent: [
           { s1: 'x', t1: "啊啊啊！它怎么弹回去了！", s2: 'w', t2: "这鱼力气真大，下次我帮你抓。" },
           { s1: 'x', t1: "跑了跑了！我的晚饭！", s2: 'w', t2: "不急，池子里多的是。" },
-          { s1: 'w', t1: "哎呀，这小东西还会挣扎。", s2: 'x', t2: "家主大人你这网漏了吧！" }
+          { s1: 'w', t1: "欸，怎么又跑了。", s2: 'x', t2: "家主大人你这网漏了吧！" },
+          { s1: 'w', t1: "哎呀，这小东西还会挣扎。", s2: 'x', t2: "活着的东西，当然会动。" }
         ]
     };
 
@@ -455,11 +462,11 @@ html, body {
     setInterval(() => {
         if(Math.random() > 0.2 || isCatching) return;
         const now = Date.now();
-        if(now - lastFishingChatTime > 2500) {
+        if(now - lastFishingChatTime > 2000) {
           const chat = chatBank.idle[Math.floor(Math.random() * chatBank.idle.length)];
           playChat(chat);
         }
-    }, 4000);
+    }, 2500);
 
     function triggerFishingChat() {
         const now = Date.now();
@@ -597,17 +604,27 @@ html, body {
             const xMouthRight = xRect.right - xRect.width * 0.15;
             const xMouthTop = xRect.top;
             const xMouthBottom = xRect.bottom - xRect.height * 0.40;
-            if(fCenterX > xMouthLeft && fCenterX < xMouthRight && fCenterY > xMouthTop && fCenterY < xMouthBottom) {
-              if (xianyunFullBlock) {
-                if (!xianyunFeedRetry) {
-                  showDialog('x', "好撑，歇一会...");
-                  xianyunFeedRetry = true;
-                  this.moveToPlate();
-                  return;
-                } else {
-                  xianyunFullBlock = false;
-                  xianyunFeedRetry = false;
-                  xianyunEatCount = 0;
+            if (xianyunFullBlock) {
+  if (!xianyunFeedRetry) {
+    // 4组对话随机
+    const dialogs = [
+      { s1: 'x', t1: "好撑，歇一会..." },
+      { s1: 'x', t1: "肚子圆滚滚的，真的吃不下了..." },
+      { s1: 'x', t1: "不行了，再吃要撑吐了……" },
+      { s1: 'x', t1: "今天真的到此为止！再也不想看见鱼了…" }
+    ];
+    const randIndex = Math.floor(Math.random() * dialogs.length);
+    showDialog(dialogs[randIndex].s1, dialogs[randIndex].t1);
+
+    xianyunFeedRetry = true;
+    this.moveToPlate();
+    return;
+  } else {
+    xianyunFullBlock = false;
+    xianyunFeedRetry = false;
+    xianyunEatCount = 0;
+  }
+}
                 }
               }
               this.el.remove();
@@ -644,11 +661,19 @@ html, body {
                   xianyunNormalEatCount++;
                 }
                 if (xianyunNormalEatCount >= 5) {
-                  setTimeout(() => {
-                    popHeart(xRect.left + xRect.width/2 - screen.getBoundingClientRect().left, xRect.top - screen.getBoundingClientRect().top);
-                    playChat({s1:'x', t1:"太好吃了！我给吃美了！", s2:'w', t2:"小美人高兴就好。"});
-                  }, 1000);
-                  xianyunNormalEatCount = 0;
+  setTimeout(() => {
+    popHeart(xRect.left + xRect.width/2 - screen.getBoundingClientRect().left, xRect.top - screen.getBoundingClientRect().top);
+    // 多组对话随机
+    const dialogs = [
+      { s1: 'x', t1: "太好吃了！我给吃美了！", s2: 'w', t2: "小美人高兴就好。" },
+      { s1: 'x', t1: "这个味道绝了！我直接爱上！", s2: 'w', t2: "嗯，看你吃我都觉得香。" },
+      { s1: 'x', t1: "好吃哭了！这才是生活！", s2: 'w', t2: "慢点吃，没人跟你抢。" }
+    ];
+    const randIndex = Math.floor(Math.random() * dialogs.length);
+    playChat(dialogs[randIndex]);
+  }, 1000);
+  xianyunNormalEatCount = 0;
+}
                 }
               }
               xianyunEatCount++;
@@ -665,30 +690,40 @@ html, body {
               return;
             }
             if(fCenterX > wRect.left && fCenterX < wRect.right && fCenterY > wRect.top && fCenterY < wRect.bottom) {
-              if (this.type === 'seaweed') {
-                const rand = Math.random();
-                if (rand < 0.5) {
-                  playChat({ s1: 'w', t1: "味道真怪...我是陆地鸟啊...", s2: 'x', t2: "哈哈哈哈家主大人你也有今天！" });
-                } else {
-                  playChat({ s1: 'w', t1: "呸...这什么水草，苦死了。", s2: 'x', t2: "谁让你乱吃！快吐出来！" });
-                }
-                this.el.remove();
-                const idx = creatures.indexOf(this);
-                if(idx > -1) creatures.splice(idx, 1);
-              } else if (this.type === 'shrimp') {
-                playChat({ 
-                  s1: 'w', t1: "哎呀小美人，你知道我不碰带壳的。", 
-                  s2: 'x', t2: "啧，家主大人真挑食。",
-                  s3: 'w', t3: "你说虾怎么做比较好吃？"
-                });
-                setTimeout(() => showDialog('x', "红烧！白灼！油炸！"), 4800);
-                this.moveToPlate();
-              } else {
-                const c = chatBank.reject[Math.floor(Math.random()*chatBank.reject.length)];
-                playChat(c);
-                this.startDeathTimer();
-              }
-              return;
+  if (this.type === 'seaweed') {
+    // 4组对话，随机来一句
+    const dialogs = [
+      { s1: 'w', t1: "味道真怪...我是陆地鸟啊...", s2: 'x', t2: "哈哈哈哈家主大人你也有今天！" },
+      { s1: 'w', t1: "呸...这什么水草，苦死了。", s2: 'x', t2: "谁让你乱吃！快吐出来！" },
+      { s1: 'w', t1: "又涩又苦，这草谁爱吃谁吃。", s2: 'x', t2: "叫你乱尝，no作no带没听过吗？给我看看。" },
+      { s1: 'w', t1: "太难吃了，我嘴都麻了。", s2: 'x', t2: "家主大人，手欠是一种病。" }
+    ];
+    const randIndex = Math.floor(Math.random() * dialogs.length);
+    playChat(dialogs[randIndex]);
+
+    this.el.remove();
+    const idx = creatures.indexOf(this);
+    if(idx > -1) creatures.splice(idx, 1);
+  } else if (this.type === 'shrimp') {
+    // 4组对话，随机来一句
+    const dialogs = [
+      { s1: 'w', t1: "哎呀小美人，你知道我不碰带壳的。", s2: 'x', t2: "啧，家主大人真挑食。", s3: 'w', t3: "你说虾怎么做比较好吃？" },
+      { s1: 'w', t1: "我对虾没兴趣，你自己吃吧。", s2: 'x', t2: "行，那我就不客气了！", s3: 'w', t3: "慢点吃，别噎着。" },
+      { s1: 'w', t1: "我不吃带壳的，太麻烦。", s2: 'x', t2: "挑食鬼，这可香了！", s3: 'w', t3: "那你多吃点。" },
+      { s1: 'w', t1: "我就看着你吃，自己没兴趣。", s2: 'x', t2: "那我全吃光了。", s3: 'w', t3: "没人跟你抢。" }
+    ];
+    const randIndex = Math.floor(Math.random() * dialogs.length);
+    playChat(dialogs[randIndex]);
+
+    setTimeout(() => showDialog('x', "红烧！白灼！油炸！"), 4800);
+    this.moveToPlate();
+  } else {
+    const c = chatBank.reject[Math.floor(Math.random()*chatBank.reject.length)];
+    playChat(c);
+    this.startDeathTimer();
+  }
+  return;
+}
             }
             if(fCenterX > pRect.left && fCenterX < pRect.right && fCenterY > pRect.top && fCenterY < pRect.bottom) {
               this.moveToPlate();
@@ -851,8 +886,8 @@ html, body {
     for(let i=0; i<6; i++) spawnSeaweed();
     setInterval(spawnSeaweed, 10000);
 
-    // 一进游戏就生成 7 条鱼
-    for(let i=0; i<7; i++) {
+    // 一进游戏就生成 8 条鱼
+    for(let i=0; i<8; i++) {
       creatures.push(new SeaCreature(false));
     }
 })();

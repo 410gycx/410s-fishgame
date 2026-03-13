@@ -126,17 +126,17 @@ html, body {
 /* 东方纤云：往下 2% + 放大 5% */
 .char-box.xianyun {
   left: 5%;
-  bottom: 30%; /* 原 28% → 30%，往下 2% */
+  bottom: 24%; /* 原 28% → 30%，往下 2% */
   width: 42%;    /* 原 40% → 42%，放大 5% */
-  height: 73.5%; /* 原 70% → 73.5%，放大 5% */
+  height: 75%; /* 原 70% → 73.5%，放大 5% */
   animation: rolyPolyLeft 3s ease-in-out infinite;
 }
 /* 东方芜穹：往下 2% + 放大 5% */
 .char-box.wuqiong {
   right: 5%;
-  bottom: 31%; /* 原 29% → 31%，往下 2% */
+  bottom: 25%; /* 原 29% → 31%，往下 2% */
   width: 52.5%; /* 原 50% → 52.5%，放大 5% */
-  height: 73.5%;/* 原 70% → 73.5%，放大 5% */
+  height: 75%;/* 原 70% → 73.5%，放大 5% */
   animation: rolyPolyRight 3.2s ease-in-out infinite;
 }
 .char-img {
@@ -149,7 +149,7 @@ html, body {
 /* 盘子：往上浮动 3% */
 .plate {
   position: absolute;
-  bottom: 41%; /* 原 44% → 41%，往上 3% */
+  bottom: 50%; /* 原 44% → 41%，往上 3% */
   left: 50%;
   transform: translateX(-50%);
   width: 100px;
@@ -910,6 +910,22 @@ html, body {
       creatures.push(new SeaCreature(false));
     }
 })();
+</script>
+  <audio id="bgm" loop autoplay preload="auto" style="display:none;">
+  <source src="https://music.baidu.com/mp3/1773333000000.mp3" type="audio/mpeg">
+
+<script>
+// 自动播放 BGM（解决浏览器限制）
+document.addEventListener('DOMContentLoaded', function() {
+  const bgm = document.getElementById('bgm');
+  bgm.volume = 0.4;
+  
+  const play = () => {
+    bgm.play().catch(() => {});
+    document.removeEventListener('click', play);
+  };
+  document.addEventListener('click', play);
+});
 </script>
 </body>
 </html>

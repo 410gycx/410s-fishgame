@@ -247,6 +247,9 @@ html, body {
   animation: seaweed-sway 4s ease-in-out infinite;
   transform-origin: bottom center;
   z-index: 4;
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }
 .fish:active { cursor: grabbing; }
 .fish.dead { filter: grayscale(1) brightness(1.2) contrast(0.8); transform: scaleY(-1) !important; }
@@ -332,6 +335,10 @@ html, body {
 .btn-b { background: #ffca3a; margin-top: 20px; }
 .btn-a { background: #ff595e; }
 </style>
+<!-- 自动播放背景音乐 -->
+<audio id="bgMusic" loop autoplay muted playsinline>
+  <source src="https://img.heliar.top/file/1773394309605_video_20260313_171256.mp3" type="audio/mp3">
+
 </head>
 <body>
 <div class="arcade-wrapper">
@@ -366,10 +373,21 @@ html, body {
 </div>
 </div>
 </div>
-<audio id="bgm" loop preload="auto" style="display:none;">
-  <source src="https://img.heliar.top/file/1773393290044_video_20260313_171256.mp4" type="video/mp4">
-
 <script>
+// 背景音乐自动播放解锁
+window.onload = function() {
+  const bgMusic = document.getElementById('bgMusic');
+  function unlockAudio() {
+    bgMusic.play().then(() => {
+      bgMusic.muted = false;
+      document.removeEventListener('click', unlockAudio);
+      document.removeEventListener('touchstart', unlockAudio);
+    }).catch(err => {});
+  }
+  document.addEventListener('click', unlockAudio);
+  document.addEventListener('touchstart', unlockAudio);
+};
+
 (function(){
     const screen = document.getElementById('gameScreen');
     const pool = document.getElementById('gamePool');
@@ -379,7 +397,6 @@ html, body {
     const boxWuqiong = document.getElementById('boxWuqiong');
     const dlgXianyun = document.getElementById('dlgXianyun');
     const dlgWuqiong = document.getElementById('dlgWuqiong');
-    const bgm = document.getElementById('bgm');
 
     let netX = 130;
     let netY = 100;
@@ -396,17 +413,6 @@ html, body {
     let xianyunFeedRetry = false;
     
     let lastFishingChatTime = 0;
-
-    // 自动播放BGM（解决浏览器限制）
-    function tryPlayBGM() {
-      bgm.volume = 0.4;
-      bgm.play().catch(err => {
-        setTimeout(tryPlayBGM, 1000);
-      });
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-      document.addEventListener('click', tryPlayBGM, { once: true });
-    });
 
     const chatBank = {
         idle: [
@@ -443,7 +449,8 @@ html, body {
         ],
         eatDead: [
           { s1: 'x', t1: "呕...这鱼臭了！！！🤢", s2: 'w', t2: "哎呀，是谁乱投喂死物。" },
-          { s1: 'x', t1: "yue！你要毒死我吗！", s2: 'w', t2: "快吐出来，别 s2: 'w', t2: "张嘴我看看，别咽下去了。" },
+          { s1: 'x', t1: "yue！你要毒死我吗！", s2: 'w', t2: "快吐出来，别脏了身子。" },
+          { s1: 'x', t1: "呸呸呸，好苦！中毒了！", s2: 'w', t2: "张嘴我看看，别咽下去了。" },
           { s1: 'x', t1: "救命...我看见走马灯了...", s2: 'w', t2: "别瞎说，吐出来就好了。" }
         ],
         reject: [
@@ -506,7 +513,9 @@ html, body {
     function triggerFishingChat() {
         const now = Date.now();
         if (now - lastFishingChatTime > 1500) {
-         ishing[Math.floor(Math.random() * chatBank.fishing.length)];
+          lastFishingChatTime = now;
+          if(Math.random() > 0.3) return;
+          const chat = chatBank.fishing[Math.floor(Math.random() * chatBank.fishing.length)];
           playChat(chat);
         }
     }
@@ -522,11 +531,13 @@ html, body {
             this.icon = '🌿';
             this.el.classList.add('seaweed');
             this.x = spawnX !== null ? spawnX : Math.random() * (screen.offsetWidth - 40) + 10;
-            // 修正：水草固定在screen最底部，不是鱼池水平面
-            this.y = screen.offsetHeight - 32;
+            this.y = 0;
             this.vx = 0;
             this.vy = 0;
             screen.appendChild(this.el);
+            this.el.style.bottom = '0px';
+            this.el.style.left = this.x + 'px';
+            this.el.style.top = 'unset';
           } else {
             const rand = Math.random();
             if (rand < 0.10) {
@@ -548,8 +559,10 @@ html, body {
           }
           
           this.el.innerHTML = this.icon;
-          this.el.style.left = this.x + 'px';
-          this.el.style.top = this.y + 'px';
+          if (!isSeaweed) {
+            this.el.style.left = this.x + 'px';
+            this.el.style.top = this.y + 'px';
+          }
           this.state = 'pool';
           this.dead = false;
           this.deathTimer = null;

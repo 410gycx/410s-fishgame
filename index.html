@@ -15,34 +15,35 @@ html, body {
   height: 100%;
   background: #fce4ec;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .arcade-wrapper {
-  width: 100%;
+  width: 100vw;
   height: 100vh;
   max-width: 480px;
+  max-height: 95vh;
   margin: 0 auto;
   font-family: 'Microsoft YaHei', sans-serif;
   user-select: none;
   -webkit-user-select: none;
   display: flex;
-  align-items: center;   /* 保持垂直居中 */
+  align-items: center;
   justify-content: center;
-  padding: 10px 0;       /* 加一点上下内边距，避免贴边 */
 }
-
 .arcade-shell {
   background: #ffb7b2;
   border: 4px solid #111;
   border-radius: 30px;
   padding: 20px 15px 30px;
   box-shadow: inset -8px -8px 0 rgba(0,0,0,0.1), inset 8px 8px 0 rgba(255,255,255,0.4), 8px 10px 0 #111;
-  width: 96%;
-  height: 95vh;          /* 直接设为 95vh，不再用 aspect-ratio 限制高度 */
-  max-height: 95vh;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 9/16;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 .arcade-header {
   width: 60px;
@@ -118,9 +119,25 @@ html, body {
   position: absolute;
   transform-origin: bottom center;
   pointer-events: auto;
+  width: 40%;
 }
-.char-box.xianyun { left: 5%; bottom: 28%; width: 40%; height: 70%; animation: rolyPolyLeft 3s ease-in-out infinite; }
-.char-box.wuqiong { right: 5%; bottom: 29%; width: 50%; height: 70%; animation: rolyPolyRight 3.2s ease-in-out infinite; }
+.char-box.xianyun {
+  left: 5%;
+  bottom: 28%;
+  animation: rolyPolyLeft 3s ease-in-out infinite;
+}
+.char-box.wuqiong {
+  right: 5%;
+  bottom: 29%;
+  animation: rolyPolyRight 3.2s ease-in-out infinite;
+}
+.char-img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
 .plate {
   position: absolute;
   bottom: 44%;
@@ -145,7 +162,6 @@ html, body {
   z-index: 4;
   overflow: hidden;
 }
-.char-img { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; }
 .dialog {
   position: absolute;
   top: 15%;
@@ -605,28 +621,28 @@ html, body {
             const xMouthRight = xRect.right - xRect.width * 0.15;
             const xMouthTop = xRect.top;
             const xMouthBottom = xRect.bottom - xRect.height * 0.40;
-            if (xianyunFullBlock) {
-  if (!xianyunFeedRetry) {
-    // 4组对话随机
-    const dialogs = [
-      { s1: 'x', t1: "好撑，歇一会..." },
-      { s1: 'x', t1: "肚子圆滚滚的，真的吃不下了..." },
-      { s1: 'x', t1: "不行了，再吃要撑吐了……" },
-      { s1: 'x', t1: "今天真的到此为止！再也不想看见鱼了…" }
-    ];
-    const randIndex = Math.floor(Math.random() * dialogs.length);
-    showDialog(dialogs[randIndex].s1, dialogs[randIndex].t1);
 
-    xianyunFeedRetry = true;
-    this.moveToPlate();
-    return;
-  } else {
-    xianyunFullBlock = false;
-    xianyunFeedRetry = false;
-    xianyunEatCount = 0;
-  }
-            }
+            if (xianyunFullBlock) {
+              if (!xianyunFeedRetry) {
+                const dialogs = [
+                  { s1: 'x', t1: "好撑，歇一会..." },
+                  { s1: 'x', t1: "肚子圆滚滚的，真的吃不下了..." },
+                  { s1: 'x', t1: "不行了，再吃要撑吐了……" },
+                  { s1: 'x', t1: "今天真的到此为止！再也不想看见鱼了…" }
+                ];
+                const randIndex = Math.floor(Math.random() * dialogs.length);
+                showDialog(dialogs[randIndex].s1, dialogs[randIndex].t1);
+                xianyunFeedRetry = true;
+                this.moveToPlate();
+                return;
+              } else {
+                xianyunFullBlock = false;
+                xianyunFeedRetry = false;
+                xianyunEatCount = 0;
               }
+            }
+
+            if(fCenterX > xMouthLeft && fCenterX < xMouthRight && fCenterY > xMouthTop && fCenterY < xMouthBottom) {
               this.el.remove();
               const i = creatures.indexOf(this);
               if(i > -1) creatures.splice(i, 1);
@@ -661,19 +677,17 @@ html, body {
                   xianyunNormalEatCount++;
                 }
                 if (xianyunNormalEatCount >= 5) {
-  setTimeout(() => {
-    popHeart(xRect.left + xRect.width/2 - screen.getBoundingClientRect().left, xRect.top - screen.getBoundingClientRect().top);
-    // 多组对话随机
-    const dialogs = [
-      { s1: 'x', t1: "太好吃了！我给吃美了！", s2: 'w', t2: "小美人高兴就好。" },
-      { s1: 'x', t1: "这个味道绝了！我直接爱上！", s2: 'w', t2: "嗯，看你吃我都觉得香。" },
-      { s1: 'x', t1: "好吃哭了！这才是生活！", s2: 'w', t2: "慢点吃，没人跟你抢。" }
-    ];
-    const randIndex = Math.floor(Math.random() * dialogs.length);
-    playChat(dialogs[randIndex]);
-  }, 1000);
-  xianyunNormalEatCount = 0;
-}
+                  setTimeout(() => {
+                    popHeart(xRect.left + xRect.width/2 - screen.getBoundingClientRect().left, xRect.top - screen.getBoundingClientRect().top);
+                    const dialogs = [
+                      { s1: 'x', t1: "太好吃了！我给吃美了！", s2: 'w', t2: "小美人高兴就好。" },
+                      { s1: 'x', t1: "这个味道绝了！我直接爱上！", s2: 'w', t2: "嗯，看你吃我都觉得香。" },
+                      { s1: 'x', t1: "好吃哭了！这才是生活！", s2: 'w', t2: "慢点吃，没人跟你抢。" }
+                    ];
+                    const randIndex = Math.floor(Math.random() * dialogs.length);
+                    playChat(dialogs[randIndex]);
+                  }, 1000);
+                  xianyunNormalEatCount = 0;
                 }
               }
               xianyunEatCount++;
@@ -689,42 +703,39 @@ html, body {
               }
               return;
             }
+
             if(fCenterX > wRect.left && fCenterX < wRect.right && fCenterY > wRect.top && fCenterY < wRect.bottom) {
-  if (this.type === 'seaweed') {
-    // 4组对话，随机来一句
-    const dialogs = [
-      { s1: 'w', t1: "味道真怪...我是陆地鸟啊...", s2: 'x', t2: "哈哈哈哈家主大人你也有今天！" },
-      { s1: 'w', t1: "呸...这什么水草，苦死了。", s2: 'x', t2: "谁让你乱吃！快吐出来！" },
-      { s1: 'w', t1: "又涩又苦，这草谁爱吃谁吃。", s2: 'x', t2: "叫你乱尝，no作no带没听过吗？给我看看。" },
-      { s1: 'w', t1: "太难吃了，我嘴都麻了。", s2: 'x', t2: "家主大人，手欠是一种病。" }
-    ];
-    const randIndex = Math.floor(Math.random() * dialogs.length);
-    playChat(dialogs[randIndex]);
-
-    this.el.remove();
-    const idx = creatures.indexOf(this);
-    if(idx > -1) creatures.splice(idx, 1);
-  } else if (this.type === 'shrimp') {
-    // 4组对话，随机来一句
-    const dialogs = [
-      { s1: 'w', t1: "哎呀小美人，你知道我不碰带壳的。", s2: 'x', t2: "啧，家主大人真挑食。", s3: 'w', t3: "你说虾怎么做比较好吃？" },
-      { s1: 'w', t1: "我对虾没兴趣，你自己吃吧。", s2: 'x', t2: "行，那我就不客气了！", s3: 'w', t3: "慢点吃，别噎着。" },
-      { s1: 'w', t1: "我不吃带壳的，太麻烦。", s2: 'x', t2: "挑食鬼，这可香了！", s3: 'w', t3: "那你多吃点。" },
-      { s1: 'w', t1: "我就看着你吃，自己没兴趣。", s2: 'x', t2: "那我全吃光了。", s3: 'w', t3: "没人跟你抢。" }
-    ];
-    const randIndex = Math.floor(Math.random() * dialogs.length);
-    playChat(dialogs[randIndex]);
-
-    setTimeout(() => showDialog('x', "红烧！白灼！油炸！"), 4800);
-    this.moveToPlate();
-  } else {
-    const c = chatBank.reject[Math.floor(Math.random()*chatBank.reject.length)];
-    playChat(c);
-    this.startDeathTimer();
-  }
-  return;
-}
+              if (this.type === 'seaweed') {
+                const dialogs = [
+                  { s1: 'w', t1: "味道真怪...我是陆地鸟啊...", s2: 'x', t2: "哈哈哈哈家主大人你也有今天！" },
+                  { s1: 'w', t1: "呸...这什么水草，苦死了。", s2: 'x', t2: "谁让你乱吃！快吐出来！" },
+                  { s1: 'w', t1: "又涩又苦，这草谁爱吃谁吃。", s2: 'x', t2: "叫你乱尝，no作no带没听过吗？给我看看。" },
+                  { s1: 'w', t1: "太难吃了，我嘴都麻了。", s2: 'x', t2: "家主大人，手欠是一种病。" }
+                ];
+                const randIndex = Math.floor(Math.random() * dialogs.length);
+                playChat(dialogs[randIndex]);
+                this.el.remove();
+                const idx = creatures.indexOf(this);
+                if(idx > -1) creatures.splice(idx, 1);
+              } else if (this.type === 'shrimp') {
+                const dialogs = [
+                  { s1: 'w', t1: "哎呀小美人，你知道我不碰带壳的。", s2: 'x', t2: "啧，家主大人真挑食。", s3: 'w', t3: "你说虾怎么做比较好吃？" },
+                  { s1: 'w', t1: "我对虾没兴趣，你自己吃吧。", s2: 'x', t2: "行，那我就不客气了！", s3: 'w', t3: "慢点吃，别噎着。" },
+                  { s1: 'w', t1: "我不吃带壳的，太麻烦。", s2: 'x', t2: "挑食鬼，这可香了！", s3: 'w', t3: "那你多吃点。" },
+                  { s1: 'w', t1: "我就看着你吃，自己没兴趣。", s2: 'x', t2: "那我全吃光了。", s3: 'w', t3: "没人跟你抢。" }
+                ];
+                const randIndex = Math.floor(Math.random() * dialogs.length);
+                playChat(dialogs[randIndex]);
+                setTimeout(() => showDialog('x', "红烧！白灼！油炸！"), 4800);
+                this.moveToPlate();
+              } else {
+                const c = chatBank.reject[Math.floor(Math.random()*chatBank.reject.length)];
+                playChat(c);
+                this.startDeathTimer();
+              }
+              return;
             }
+
             if(fCenterX > pRect.left && fCenterX < pRect.right && fCenterY > pRect.top && fCenterY < pRect.bottom) {
               this.moveToPlate();
               return;
@@ -886,7 +897,6 @@ html, body {
     for(let i=0; i<6; i++) spawnSeaweed();
     setInterval(spawnSeaweed, 10000);
 
-    // 一进游戏就生成 8 条鱼
     for(let i=0; i<8; i++) {
       creatures.push(new SeaCreature(false));
     }

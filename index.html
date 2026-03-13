@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>大穹捞鱼机</title>
+<title>三层叠鱼游戏</title>
 <style>
 * {
   margin: 0;
@@ -142,7 +142,6 @@ html, body {
   display: block;
   pointer-events: none;
 }
-/* 盘子：侧面形状，提升到水面上方，自适应缩放 */
 .plate {
   position: absolute;
   bottom: 50%;
@@ -590,43 +589,45 @@ html, body {
             plate.appendChild(this.el);
             this.el.style.position = 'absolute';
 
-            // 三层配置：第一层6条(70%)、第二层4条(50%)、第三层3条(30%)
+            // 三层配置：第一层6、第二层4、第三层3
             const layers = [
-                { max: 6, widthPercent: 0.7, offsetY: 0 },    // 底层
-                { max: 4, widthPercent: 0.5, offsetY: -18 },  // 中层
-                { max: 3, widthPercent: 0.3, offsetY: -36 }   // 顶层
+                { max: 6, widthPercent: 0.7, offsetY: 0 },
+                { max: 4, widthPercent: 0.5, offsetY: -18 },
+                { max: 3, widthPercent: 0.3, offsetY: -36 }
             ];
-            let targetLayer = 0;
-            let targetSlot = 0;
+            const totalMax = layers.reduce((sum, l) => sum + l.max, 0);
             const plateRect = plate.getBoundingClientRect();
             const plateWidth = plateRect.width;
 
-            // 找到第一个有空位的层
+            let targetLayer = null;
+            let targetSlot = null;
+
+            // 先找有空位的层（优先填满，不替换）
             for (let i = 0; i < layers.length; i++) {
-                const layerCount = plateStack.filter(f => f.layer === i).length;
-                if (layerCount < layers[i].max) {
+                const count = plateStack.filter(f => f.layer === i).length;
+                if (count < layers[i].max) {
                     targetLayer = i;
-                    targetSlot = layerCount;
+                    targetSlot = count;
                     break;
-                }
-                // 所有层满了，随机替换底层
-                if (i === layers.length - 1) {
-                    targetLayer = 0;
-                    const bottomLayerSlots = plateStack.filter(f => f.layer === 0);
-                    targetSlot = Math.floor(Math.random() * bottomLayerSlots.length);
-                    // 打散被替换的鱼
-                    const replacedFish = bottomLayerSlots[targetSlot];
-                    const replacedX = (Math.random() - 0.5) * (plateWidth * layers[0].widthPercent);
-                    replacedFish.el.style.left = `calc(50% + ${replacedX}px)`;
-                    replacedFish.el.style.top = `calc(50% + ${layers[0].offsetY + (Math.random() - 0.5) * 5}px)`;
-                    replacedFish.el.style.transform = `translate(-50%, -50%) rotate(${(Math.random() - 0.5) * 30}deg)`;
                 }
             }
 
+            // 三层全满 → 随机替换任意一层任意一条
+            if (targetLayer === null) {
+                const randomIndex = Math.floor(Math.random() * plateStack.length);
+                const replacedFish = plateStack[randomIndex];
+                targetLayer = replacedFish.layer;
+                targetSlot = replacedFish.slot;
+
+                // 移除被替换的鱼
+                replacedFish.el.remove();
+                plateStack.splice(randomIndex, 1);
+            }
+
+            // 摆放当前鱼
             const layer = layers[targetLayer];
             const availableWidth = plateWidth * layer.widthPercent;
-            // 均匀分布 + 随机偏移，让鱼铺得更开
-            const slotX = (targetSlot / (layer.max - 1) - 0.5) * availableWidth;
+            const slotX = (targetSlot / (layer.max - 1 || 1) - 0.5) * availableWidth;
             const randomX = (Math.random() - 0.5) * (availableWidth * 0.15);
             const finalX = slotX + randomX;
             const randomRot = (Math.random() - 0.5) * 30;
@@ -638,13 +639,7 @@ html, body {
 
             this.layer = targetLayer;
             this.slot = targetSlot;
-
-            if (targetLayer === 0 && plateStack.filter(f => f.layer === 0).length >= layers[0].max) {
-                const replaceIndex = plateStack.findIndex(f => f.layer === 0 && f.slot === targetSlot);
-                plateStack[replaceIndex] = this;
-            } else {
-                plateStack.push(this);
-            }
+            plateStack.push(this);
 
             this.stopDeathTimer();
         }

@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>大穹捞鱼</title>
+<style>
+.arcade-wrapper {
+    width: 100%;
+    height: 650px;
+    margin: 0 auto;
+    font-family: 'Microsoft YaHei', sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    padding: 20px 0;
+}
+
+.arcade-shell {
+    background: #ffb7b2;
+    border: 4px solid #111;
+    border-radius: 30px 30px 40px 40px;
+    padding: 20px 15px 30px 15px;
+    box-shadow: 
+        inset -8px -8px 0 rgba(0,0,0,0.1),
+        inset 8px 8px 0 rgba(255,255,255,0.4),
+        8px 10px 0 #111;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 380px;
+    margin: 0 auto;
+}
+
+.arcade-header {
+    width: 60px;
+    height: 10px;
+    background: #111;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 0 rgba(255,255,255,0.5);
+}
+
+.screen-bezel {
+    width: 100%;
+    background: #e2f0cb;
+    border: 4px solid #111;
+    border-radius: 15px;
+    padding: 10px;
+    box-sizing: border-box;
+    box-shadow: inset 4px 4px 0 rgba(0,0,0,0.1);
+}
+
+.screen {
+    width: 100%;
+    height: 350px;
+    background: url('https://img.heliar.top/file/1773332850723_IMG_20260313_002655.jpg') center/cover no-repeat;
+    border: 3px solid #111;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden; 
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+
+.cloud {
+    position: absolute;
+    filter: drop-shadow(2px 0 0 #111) drop-shadow(-2px 0 0 #111) drop-shadow(0 2px 0 #111) drop-shadow(0 -2px 0 #111);
+    opacity: 0.9;
+    z-index: 1;
+}
+.cloud-base {
+    width: 60px; height: 25px; background: white; border-radius: 20px; position: absolute; top: 15px; left: 0;
+}
+.cloud-bump1 {
+    width: 30px; height: 30px; background: white; border-radius: 50%; position: absolute; top: 0px; left: 10px;
+}
+.cloud-bump2 {
+    width: 25px; height: 25px; background: white; border-radius: 50%; position: absolute; top: 5px; left: 30px;
+}
+.c1 { top: 20px; left: 30px; transform: scale(0.9); }
+.c2 { top: 30px; left: 140px; transform: scale(0.7); }
+
+.sun {
+    position: absolute;
+    top: -30px; 
+    right: -20px; 
+    width: 60px; 
+    height: 60px; 
+    background: #ffca3a;
+    border-radius: 50%;
+    border: 4px solid #111;
+    z-index: 1;
+}
+
+.sun::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120%;
+    height: 120%;
+    transform: translate(-50%, -50%);
+    border: 3px dashed #ffca3a;
+    border-radius: 50%;
+}
+
+.chars-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    z-index: 2;
+    pointer-events: none; 
+}
+
+@keyframes rolyPolyLeft {
+    0%, 100% { transform: rotate(-8deg); }
+    50% { transform: rotate(4deg); }
+}
+@keyframes rolyPolyRight {
+    0%, 100% { transform: rotate(8deg); }
+    50% { transform: rotate(-4deg); }
+}
+
+.char-box {
+    position: absolute;
+    transform-origin: bottom center;
+    pointer-events: auto;
+}
+
+.char-box.xianyun {
+    left: 5%; 
+    bottom: 28%; 
+    width: 40%; 
+    height: 70%; 
+    animation: rolyPolyLeft 3s ease-in-out infinite;
+}
+
+.char-box.wuqiong {
+    right: 5%; 
+    bottom: 31%; 
+    width: 50%; 
+    height: 70%; 
+    animation: rolyPolyRight 3.2s ease-in-out infinite;
+}
+
+.plate {
+    position: absolute;
+    bottom: 44%; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 40px;
+    background: #fdfdfd;
+    border: 3px solid #111;
+    border-radius: 50%;
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1), 0 4px 0 rgba(0,0,0,0.2);
+    z-index: 3;
+}
+
+.pool {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%; 
+    background: #a2e8f5;
+    border-top: 4px solid #111;
+    z-index: 4;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.char-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+}
+
+.dialog {
+    position: absolute;
+    top: 15%; 
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    border: 2px solid #111;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #111;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-width: 130px;
+    width: max-content;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow: 2px 2px 0 #111;
+}
+
+.dialog::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px 5px 0;
+    border-style: solid;
+    border-color: #111 transparent transparent transparent;
+}
+
+.heart-pop {
+    position: absolute;
+    font-size: 24px;
+    pointer-events: none;
+    z-index: 20;
+    animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -40px) scale(1.5); }
+}
+
+.pool::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: 5px;
+    left: -50%;
+    background: rgba(255,255,255,0.3);
+    border-radius: 40%;
+    animation: wave-anim 6s linear infinite;
+    pointer-events: none;
+}
+
+.pool::after {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: 15px;
+    left: -50%;
+    background: rgba(255,255,255,0.2);
+    border-radius: 45%;
+    animation: wave-anim 8s linear infinite reverse;
+    pointer-events: none;
+}
+
+@keyframes wave-anim {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes seaweed-sway {
+    0%, 100% { transform: rotate(-8deg) scaleY(1.1) skewX(-2deg); }
+    50% { transform: rotate(8deg) scaleY(1.2) skewX(2deg); }
+}
+
+.fish {
+    position: absolute;
+    font-size: 24px;
+    cursor: grab;
+    user-select: none;
+    z-index: 5;
+    text-shadow: 1px 1px 0 #111, -1px -1px 0 #111, 1px -1px 0 #111, -1px 1px 0 #111;
+    transition: transform 0.2s;
+}
+
+.fish.seaweed {
+    font-size: 26px; 
+    filter: hue-rotate(-10deg) brightness(1.1);
+    animation: seaweed-sway 4s ease-in-out infinite;
+    transform-origin: bottom center;
+    z-index: 4;
+}
+
+.fish:active { cursor: grabbing; }
+
+.fish.dead {
+    filter: grayscale(1) brightness(1.2) contrast(0.8);
+    transform: scaleY(-1) !important;
+}
+
+.net {
+    position: absolute;
+    width: 46px;
+    height: 46px;
+    top: 20px;
+    left: 50px;
+    border: 3px solid #111;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    box-shadow: 0 0 0 2px #fff, inset 0 0 5px rgba(0,0,0,0.2);
+    z-index: 6;
+    pointer-events: none;
+    transition: top 0.1s, left 0.1s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.net::after {
+    content: '';
+    position: absolute;
+    top: -400px;
+    left: 20px;
+    width: 4px;
+    height: 400px;
+    background: #111;
+}
+
+.net.catching {
+    background: rgba(178, 247, 239, 0.7);
+    border-color: #ff0054;
+}
+
+.control-panel {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.dpad {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background: #e2f0cb;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset 2px 2px 5px rgba(255,255,255,0.7), 0 4px 0 #111;
+    border: 3px solid #111;
+}
+
+.cross {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.cross-v, .cross-h {
+    position: absolute;
+    background: #333;
+    border-radius: 4px;
+    box-shadow: inset 2px 2px 0 rgba(255,255,255,0.2), 0 3px 0 #111;
+    border: 2px solid #111;
+}
+
+.cross-v { top: 0; left: 25px; width: 30px; height: 80px; }
+.cross-h { top: 25px; left: 0; width: 80px; height: 30px; }
+
+.dbtn {
+    position: absolute;
+    z-index: 2;
+    cursor: pointer;
+    background: transparent;
+}
+
+.up { top: -10px; left: 25px; width: 30px; height: 40px; }
+.down { bottom: -10px; left: 25px; width: 30px; height: 40px; }
+.left { top: 25px; left: -10px; width: 40px; height: 30px; }
+.right { top: 25px; right: -10px; width: 40px; height: 30px; }
+
+.action-btns {
+    display: flex;
+    gap: 15px;
+    transform: rotate(-15deg);
+}
+
+.abtn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 3px solid #111;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    color: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset -2px -4px 0 rgba(0,0,0,0.2), inset 2px 2px 0 rgba(255,255,255,0.5), 0 6px 0 #111;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.abtn:active {
+    transform: translateY(6px);
+    box-shadow: inset -2px -4px 0 rgba(0,0,0,0.2), inset 2px 2px 0 rgba(255,255,255,0.5), 0 0 0 #111;
+}
+
+.btn-b { background: #ffca3a; margin-top: 20px; }
+.btn-a { background: #ff595e; }
+</style>
+</head>
+<body>
+
+<div class="arcade-wrapper">
+<div class="arcade-shell">
+<div class="arcade-header"></div>
+<div class="screen-bezel">
+<div class="screen" id="gameScreen">
+<div class="cloud c1">
+<div class="cloud-base"></div>
+<div class="cloud-bump1"></div>
+<div class="cloud-bump2"></div>
+</div>
+<div class="cloud c2">
+<div class="cloud-base"></div>
+<div class="cloud-bump1"></div>
+<div class="cloud-bump2"></div>
+</div>
+<div class="sun"></div>
+<div class="chars-layer">
+<div class="char-box xianyun" id="boxXianyun">
+<div class="dialog" id="dlgXianyun"></div>
+<img class="char-img" src="https://img.heliar.top/file/1773332699215_3959.png">
+</div>
+<div class="char-box wuqiong" id="boxWuqiong">
+<div class="dialog" id="dlgWuqiong"></div>
+<img class="char-img" src="https://img.heliar.top/file/1773332702493_1552.png">
+</div>
+</div>
+<div class="plate" id="gamePlate"></div>
+<div class="net" id="gameNet"></div>
+<div class="pool" id="gamePool"></div>
+</div>
+</div>
+<div class="control-panel">
+<div class="dpad">
+<div class="cross">
+<div class="cross-v"></div>
+<div class="cross-h"></div>
+</div>
+<div class="dbtn up" id="btnUp"></div>
+<div class="dbtn down" id="btnDown"></div>
+<div class="dbtn left" id="btnLeft"></div>
+<div class="dbtn right" id="btnRight"></div>
+</div>
+<div class="action-btns">
+<div class="abtn btn-b" id="btnB">投</div>
+<div class="abtn btn-a" id="btnA">捞</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+    const screen = document.getElementById('gameScreen');
+    const pool = document.getElementById('gamePool');
+    const plate = document.getElementById('gamePlate');
+    const net = document.getElementById('gameNet');
+    const boxXianyun = document.getElementById('boxXianyun');
+    const boxWuqiong = document.getElementById('boxWuqiong');
+    const dlgXianyun = document.getElementById('dlgXianyun');
+    const dlgWuqiong = document.getElementById('dlgWuqiong');
+
+    let netX = 130;
+    let netY = 100;
+    let creatures = [];
+    let speedMultiplier = 1;
+    let speedTimer = null;
+    let animationId;
+    let isCatching = false;
+    
+    let xianyunPoisoned = false;
+    let xianyunEatCount = 0;
+    let xianyunNormalEatCount = 0;
+    let xianyunFullBlock = false;
+    let xianyunFeedRetry = false;
+    
+    let lastFishingChatTime = 0;
+
+    const chatBank = {
+        idle: [
+          { s1: 'x', t1: "玄铭宗的后山环境还挺好，就是这风有点冷。", s2: 'w', t2: "冷的话，靠我近点就不冷了。" },
+          { s1: 'x', t1: "家主大人，那条鱼是不是在瞪我？", s2: 'w', t2: "它大概是嫉妒小美人长得好看吧。" },
+          { s1: 'x', t1: "这水底怎么这么多奇奇怪怪的鱼……", s2: 'w', t2: "专心点，小心它咬你的手。" },
+          { s1: 'x', t1: "等会儿捞完了我们去吃驴肉火烧吧！", s2: 'w', t2: "好啊，依你。" },
+          { s1: 'x', t1: "一条两条三条四条…不知道口感怎么样…" }
+        ],
+        fishing: [
+          { s1: 'x', t1: "别抢别抢，这条我看上的！", s2: 'w', t2: "好好好，都依你。" },
+          { s1: 'x', t1: "家主大人你别挤我！", s2: 'w', t2: "哦？可是空间就这么大呀。" },
+          { s1: 'x', t1: "快捞快捞，它游跑了！", s2: 'w', t2: "急什么，跑不出我的手心。" },
+          { s1: 'w', t1: "小美人，你这准头不太行啊，要不要我手、把、手教你？", s2: 'x', t2: "哈哈…谢绝了哈。" },
+          { s1: 'x', t1: "看我的！", s2: 'w', t2: "注意安全，别掉下去了。" },
+          { s1: 'w', t1: "小美人想要哪条？我帮你捞。", s2: 'x', t2: "不用帮忙，我自己来！" }
+        ],
+        eatLive: [
+          { s1: 'x', t1: "好吃！", s2: 'w', t2: "慢点吃，没人跟你抢。" },
+          { s1: 'x', t1: "嘿嘿，肥美！", s2: 'w', t2: "小美人喜欢就好。" },
+          { s1: 'x', t1: "味道不错！再来一条！", s2: 'w', t2: "好胃口，都给你。" },
+          { s1: 'x', t1: "嗯？这鱼竟然有点甜？", s2: 'w', t2: "玄铭宗的灵泉水养出来的，自然不同。" }
+        ],
+        eatShrimp: [
+          { s1: 'x', t1: "哇！是大虾！好吃！", s2: 'w', t2: "连壳都吃？真不挑。" },
+          { s1: 'x', t1: "虾肉好甜！", s2: 'w', t2: "慢点，别被须子扎到。" },
+          { s1: 'x', t1: "嘿嘿，你吃不到，归我了！", s2: 'w', t2: "你看你这护食的样。" }
+        ],
+        eatDead: [
+          { s1: 'x', t1: "呕...这鱼臭了！！！🤢", s2: 'w', t2: "哎呀，是谁乱投喂死物。" },
+          { s1: 'x', t1: "yue！你要毒死我吗！", s2: 'w', t2: "快吐出来，别脏了身子。" },
+          { s1: 'x', t1: "呸呸呸，好苦！中毒了！", s2: 'w', t2: "张嘴我看看，别咽下去了。" },
+          { s1: 'x', t1: "救命...我看见走马灯了...", s2: 'w', t2: "别瞎说，吐出来就好了。" }
+        ],
+        reject: [
+          { s1: 'w', t1: "我可不吃这粗糙玩意儿，喂他吧。" },
+          { s1: 'w', t1: "这种事还是让给小美人吧。" },
+          { s1: 'w', t1: "纤云更喜欢吃这个。" },
+          { s1: 'w', t1: "拿远点，这味道我不喜欢。" },
+          { s1: 'w', t1: "你想让我吃这个？小美人真是不心疼我。" }
+        ],
+        catchEvent: [
+          { s1: 'w', t1: "真棒，捞到了。" },
+          { s1: 'x', t1: "太好了，捞到了！" },
+          { s1: 'x', t1: "哈！看我这神仙准头！", s2: 'w', t2: "厉害厉害，小美人真棒。" },
+          { s1: 'x', t1: "捞到了！真不愧是家主大人！", s2: 'w', t2: "那你要怎么奖励我？" },
+          { s1: 'w', t1: "又一条，今晚可以加餐了。", s2: 'x', t2: "我要吃红烧的！" },
+          { s1: 'x', t1: "哎呀，差点让它跑了！", s2: 'w', t2: "有我在，跑不掉的。" }
+        ],
+        escapeEvent: [
+          { s1: 'x', t1: "啊啊啊！它怎么弹回去了！", s2: 'w', t2: "这鱼力气真大，下次我帮你抓。" },
+          { s1: 'x', t1: "跑了跑了！我的晚饭！", s2: 'w', t2: "不急，池子里多的是。" },
+          { s1: 'w', t1: "哎呀，这小东西还会挣扎。", s2: 'x', t2: "家主大人你这网漏了吧！" }
+        ]
+    };
+
+    function showDialog(char, text, duration = 3000) {
+        const dlg = char === 'x' ? dlgXianyun : dlgWuqiong;
+        dlg.innerText = text;
+        dlg.style.opacity = '1';
+        setTimeout(() => { dlg.style.opacity = '0'; }, duration);
+    }
+
+    function playChat(chatObj) {
+        if (chatObj.s1) {
+          showDialog(chatObj.s1, chatObj.t1);
+          if (chatObj.s2) {
+          setTimeout(() => showDialog(chatObj.s2, chatObj.t2), 800);
+          }
+          if (chatObj.s3) {
+          setTimeout(() => showDialog(chatObj.s3, chatObj.t3), 1600);
+          }
+        }
+    }
+    
+    function popHeart(x, y) {
+        const h = document.createElement('div');
+        h.innerText = '❤️';
+        h.className = 'heart-pop';
+        h.style.left = x + 'px';
+        h.style.top = y + 'px';
+        screen.appendChild(h);
+        setTimeout(() => h.remove(), 1000);
+    }
+
+    setInterval(() => {
+        if(Math.random() > 0.2 || isCatching) return;
+        const now = Date.now();
+        if(now - lastFishingChatTime > 2500) {
+          const chat = chatBank.idle[Math.floor(Math.random() * chatBank.idle.length)];
+          playChat(chat);
+        }
+    }, 4000);
+
+    function triggerFishingChat() {
+        const now = Date.now();
+        if (now - lastFishingChatTime > 1500) {
+          lastFishingChatTime = now;
+          if(Math.random() > 0.3) return;
+          const chat = chatBank.fishing[Math.floor(Math.random() * chatBank.fishing.length)];
+          playChat(chat);
+        }
+    }
+
+    class SeaCreature {
+        constructor(isSeaweed = false, spawnX = null) {
+          this.el = document.createElement('div');
+          this.el.className = 'fish';
+          this.isPanic = false;
+          
+          if (isSeaweed) {
+          this.type = 'seaweed';
+          this.icon = '🌿';
+          this.el.classList.add('seaweed');
+          this.x = spawnX !== null ? spawnX : Math.random() * (screen.offsetWidth - 40) + 10;
+          this.y = screen.offsetHeight - 32; 
+          this.vx = 0;
+          this.vy = 0;
+          screen.appendChild(this.el);
+          } else {
+          const rand = Math.random();
+          if (rand < 0.10) {
+          this.type = 'jellyfish';
+          this.icon = '🪼';
+          } else if (rand < 0.25) {
+          this.type = 'shrimp';
+          this.icon = '🦐';
+          } else {
+          this.type = 'fish';
+          this.icon = '🐟';
+          }
+          this.x = Math.random() < 0.5 ? -20 : screen.offsetWidth + 20;
+          this.y = Math.random() * (pool.offsetHeight - 40);
+          this.vx = (Math.random() * 1.5 + 0.5) * (this.x < 0 ? 1 : -1);
+          this.vy = (Math.random() - 0.5);
+          if(this.vx > 0) this.el.style.transform = 'scaleX(-1)';
+          pool.appendChild(this.el);
+          }
+          
+          this.el.innerText = this.icon;
+          this.el.style.left = this.x + 'px';
+          this.el.style.top = this.y + 'px';
+          this.state = 'pool';
+          this.dead = false;
+          this.deathTimer = null;
+          this.initDrag();
+        }
+
+        update() {
+          if (this.state !== 'pool' || this.type === 'seaweed') return;
+          
+          if (this.isPanic) {
+          this.x += this.vx;
+          this.y += this.vy;
+          if (this.y < 0 || this.y > pool.offsetHeight - 30) this.vy *= -1;
+          if (this.x < 0 || this.x > screen.offsetWidth - 30) { this.vx *= -1; this.flip(); }
+          this.el.style.left = this.x + 'px';
+          this.el.style.top = this.y + 'px';
+          return;
+          }
+          
+          this.x += this.vx * speedMultiplier;
+          this.y += this.vy * speedMultiplier;
+
+          if (this.y < 0 || this.y > pool.offsetHeight - 30) this.vy *= -1;
+          if (this.x < -30) { this.x = -30; this.vx *= -1; this.flip(); }
+          if (this.x > screen.offsetWidth + 10) { this.x = screen.offsetWidth + 10; this.vx *= -1; this.flip(); }
+
+          this.el.style.left = this.x + 'px';
+          this.el.style.top = this.y + 'px';
+        }
+
+        flip() {
+          if(this.state === 'pool' && this.type !== 'seaweed') {
+          this.el.style.transform = this.vx > 0 ? 'scaleX(-1)' : 'scaleX(1)';
+          }
+        }
+
+        startDeathTimer() {
+          if (this.type === 'seaweed') return;
+          if(this.deathTimer) clearTimeout(this.deathTimer);
+          this.deathTimer = setTimeout(() => {
+          this.dead = true;
+          this.el.classList.add('dead');
+          }, 5000);
+        }
+
+        stopDeathTimer() {
+          if(this.deathTimer) clearTimeout(this.deathTimer);
+        }
+        
+        moveToPlate() {
+          this.state = 'plate';
+          this.el.classList.remove('seaweed');
+          plate.appendChild(this.el);
+          this.el.style.position = 'absolute';
+          let rx = (Math.random() - 0.5) * 40;
+          let ry = (Math.random() - 0.5) * 20;
+          let rot = (Math.random() - 0.5) * 60;
+          this.el.style.left = `calc(50% + ${rx}px)`;
+          this.el.style.top = `calc(50% + ${ry}px)`;
+          this.el.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
+          if(this.dead) this.el.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scaleY(-1)`;
+          this.stopDeathTimer();
+        }
+
+        initDrag() {
+          let startX, startY, initLeft, initTop;
+          const onMove = (e) => {
+          if(this.state !== 'dragging') return;
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          const dx = clientX - startX;
+          const dy = clientY - startY;
+          this.el.style.left = (initLeft + dx) + 'px';
+          this.el.style.top = (initTop + dy) + 'px';
+          };
+
+          const onEnd = (e) => {
+          if(this.state !== 'dragging') return;
+          this.state = 'held';
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onEnd);
+          document.removeEventListener('touchmove', onMove);
+          document.removeEventListener('touchend', onEnd);
+
+          const rect = this.el.getBoundingClientRect();
+          const fCenterX = rect.left + rect.width / 2;
+          const fCenterY = rect.top + rect.height / 2;
+
+          const xRect = boxXianyun.getBoundingClientRect();
+          const wRect = boxWuqiong.getBoundingClientRect();
+          const pRect = plate.getBoundingClientRect();
+
+          const xMouthLeft = xRect.left + xRect.width * 0.15;
+          const xMouthRight = xRect.right - xRect.width * 0.15;
+          const xMouthTop = xRect.top;
+          const xMouthBottom = xRect.bottom - xRect.height * 0.40;
+
+          if(fCenterX > xMouthLeft && fCenterX < xMouthRight && fCenterY > xMouthTop && fCenterY < xMouthBottom) {
+          if (xianyunFullBlock) {
+          if (!xianyunFeedRetry) {
+          showDialog('x', "好撑，歇一会...");
+          xianyunFeedRetry = true;
+          this.moveToPlate();
+          return;
+          } else {
+          xianyunFullBlock = false;
+          xianyunFeedRetry = false;
+          xianyunEatCount = 0;
+          }
+          }
+
+          this.el.remove();
+          const i = creatures.indexOf(this);
+          if(i > -1) creatures.splice(i, 1);
+
+          if (this.type === 'seaweed') {
+          playChat({ s1: 'x', t1: "呸呸呸！这水草一点味道都没有！", s2: 'w', t2: "乖，别乱吃水底的杂草。" });
+          return; 
+          }
+
+          if (this.type === 'jellyfish') {
+          if (xianyunPoisoned) {
+          playChat({ s1: 'x', t1: "yue！！果然又有毒！！！🤢", s2: 'w', t2: "吐出来，快点。" });
+          xianyunPoisoned = false; 
+          } else {
+          playChat({ s1: 'x', t1: "警惕...不会又吃到什么奇怪的东西吧？", s2: 'w', t2: "别怕，有我在。" });
+          xianyunPoisoned = true;
+          }
+          xianyunNormalEatCount = 0;
+          } else if (this.dead) {
+          const c = chatBank.eatDead[Math.floor(Math.random()*chatBank.eatDead.length)];
+          playChat(c);
+          xianyunPoisoned = false;
+          xianyunNormalEatCount = 0;
+          } else {
+          xianyunPoisoned = false; 
+          if (this.type === 'shrimp') {
+          const c = chatBank.eatShrimp[Math.floor(Math.random()*chatBank.eatShrimp.length)];
+          playChat(c);
+          popHeart(xRect.left + xRect.width/2 - screen.getBoundingClientRect().left, xRect.top - screen.getBoundingClientRect().top);
+          xianyunNormalEatCount++;
+          } else {
+          const c = chatBank.eatLive[Math.floor(Math.random()*chatBank.eatLive.length)];
+          playChat(c);
+          xianyunNormalEatCount++;
+          }
+          
+          if (xianyunNormalEatCount >= 5) {
+          setTimeout(() => {
+          popHeart(xRect.left + xRect.width/2 - screen.getBoundingClientRect().left, xRect.top - screen.getBoundingClientRect().top);
+          playChat({s1:'x', t1:"太好吃了！我给吃美了！", s2:'w', t2:"小美人高兴就好。"});
+          }, 1000);
+          xianyunNormalEatCount = 0;
+          }
+          }
+
+          xianyunEatCount++;
+          if (xianyunEatCount >= 11) {
+          xianyunFullBlock = true;
+          setTimeout(() => {
+          playChat({ 
+          s1: 'x', t1: "吃不下了…好撑...", 
+          s2: 'w', t2: "那我替你揉揉肚子，怎么样？", 
+          s3: 'x', t3: "十动然拒！" 
+          });
+          }, 1000);
+          }
+          return;
+          }
+
+          if(fCenterX > wRect.left && fCenterX < wRect.right && fCenterY > wRect.top && fCenterY < wRect.bottom) {
+          if (this.type === 'seaweed') {
+          const rand = Math.random();
+          if (rand < 0.5) {
+          playChat({ s1: 'w', t1: "味道真怪...我是陆地鸟啊...", s2: 'x', t2: "哈哈哈哈家主大人你也有今天！" });
+          } else {
+          playChat({ s1: 'w', t1: "呸...这什么水草，苦死了。", s2: 'x', t2: "谁让你乱吃！快吐出来！" });
+          }
+          this.el.remove();
+          const idx = creatures.indexOf(this);
+          if(idx > -1) creatures.splice(idx, 1);
+          } else if (this.type === 'shrimp') {
+          playChat({ 
+          s1: 'w', t1: "哎呀小美人，你知道我不碰带壳的。", 
+          s2: 'x', t2: "啧，家主大人真挑食。",
+          s3: 'w', t3: "你说虾怎么做比较好吃？"
+          });
+          setTimeout(() => showDialog('x', "红烧！白灼！油炸！"), 4800);
+          this.moveToPlate();
+          } else {
+          const c = chatBank.reject[Math.floor(Math.random()*chatBank.reject.length)];
+          playChat(c);
+          this.startDeathTimer();
+          }
+          return;
+          }
+
+          if(fCenterX > pRect.left && fCenterX < pRect.right && fCenterY > pRect.top && fCenterY < pRect.bottom) {
+          this.moveToPlate();
+          return;
+          }
+
+          screen.appendChild(this.el);
+          this.startDeathTimer();
+          };
+
+          const onStart = (e) => {
+          if(this.state === 'pool' || this.state === 'net') return;
+          e.preventDefault();
+          this.state = 'dragging';
+          this.el.classList.remove('seaweed');
+          if(this.el.parentNode === plate || this.el.parentNode === screen) {
+          const r = this.el.getBoundingClientRect();
+          const sR = screen.getBoundingClientRect();
+          screen.appendChild(this.el);
+          this.el.style.position = 'absolute';
+          this.el.style.left = (r.left - sR.left) + 'px';
+          this.el.style.top = (r.top - sR.top) + 'px';
+          }
+          startX = e.touches ? e.touches[0].clientX : e.clientX;
+          startY = e.touches ? e.touches[0].clientY : e.clientY;
+          initLeft = parseFloat(this.el.style.left) || 0;
+          initTop = parseFloat(this.el.style.top) || 0;
+          document.addEventListener('mousemove', onMove, {passive: false});
+          document.addEventListener('mouseup', onEnd);
+          document.addEventListener('touchmove', onMove, {passive: false});
+          document.addEventListener('touchend', onEnd);
+          this.startDeathTimer();
+          };
+
+          this.el.addEventListener('mousedown', onStart);
+          this.el.addEventListener('touchstart', onStart, {passive: false});
+        }
+    }
+
+    function gameLoop() {
+        creatures.forEach(f => f.update());
+        animationId = requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
+
+    let moveInterval = null;
+    function moveNet(dx, dy) {
+        if(isCatching) return;
+        netX += dx * 5;
+        netY += dy * 5;
+        netX = Math.max(0, Math.min(screen.offsetWidth - 46, netX));
+        netY = Math.max(0, Math.min(screen.offsetHeight - 46, netY));
+        net.style.left = netX + 'px';
+        net.style.top = netY + 'px';
+        triggerFishingChat();
+    }
+
+    function setupBtn(id, dx, dy) {
+        const btn = document.getElementById(id);
+        const start = (e) => { e.preventDefault(); moveInterval = setInterval(() => moveNet(dx, dy), 30); };
+        const end = (e) => { e.preventDefault(); clearInterval(moveInterval); };
+        btn.addEventListener('mousedown', start);
+        btn.addEventListener('mouseup', end);
+        btn.addEventListener('mouseleave', end);
+        btn.addEventListener('touchstart', start, {passive: false});
+        btn.addEventListener('touchend', end);
+    }
+    setupBtn('btnUp', 0, -1);
+    setupBtn('btnDown', 0, 1);
+    setupBtn('btnLeft', -1, 0);
+    setupBtn('btnRight', 1, 0);
+
+    document.getElementById('btnB').addEventListener('click', () => {
+        if(creatures.filter(f => f.state === 'pool' && f.type !== 'seaweed').length < 20) {
+          creatures.push(new SeaCreature(false));
+        }
+    });
+
+    document.getElementById('btnA').addEventListener('click', () => {
+        if(isCatching) return;
+        isCatching = true;
+        net.classList.add('catching');
+        
+        let oldX = net.style.left;
+        let oldY = net.style.top;
+        let caughtFish = null;
+        const netRect = net.getBoundingClientRect();
+        
+        const shrinkX = netRect.width * 0.4;
+        const shrinkY = netRect.height * 0.4;
+        const catchLeft = netRect.left + shrinkX;
+        const catchRight = netRect.right - shrinkX;
+        const catchTop = netRect.top + shrinkY;
+        const catchBottom = netRect.bottom - shrinkY;
+        
+        for(let i = 0; i < creatures.length; i++) {
+          let f = creatures[i];
+          if(f.state !== 'pool') continue;
+          const fRect = f.el.getBoundingClientRect();
+          if(catchLeft < fRect.right && catchRight > fRect.left &&
+          catchTop < fRect.bottom && catchBottom > fRect.top) {
+          caughtFish = f;
+          break;
+          }
+        }
+
+        if(caughtFish) {
+          caughtFish.state = 'net';
+          net.appendChild(caughtFish.el);
+          caughtFish.el.style.left = '50%';
+          caughtFish.el.style.top = '50%';
+          caughtFish.el.style.transform = 'translate(-50%, -50%)';
+          
+          net.style.transition = 'all 0.5s ease-in-out';
+          net.style.left = '145px';
+          net.style.top = '175px';
+          
+          setTimeout(() => {
+          
+          if (caughtFish.type !== 'seaweed' && Math.random() < 0.35) {
+          caughtFish.state = 'pool';
+          pool.appendChild(caughtFish.el);
+          const nR = net.getBoundingClientRect();
+          const pR = pool.getBoundingClientRect();
+          caughtFish.x = nR.left - pR.left + 10;
+          caughtFish.y = 0;
+          
+          caughtFish.isPanic = true;
+          caughtFish.vx = (Math.random() < 0.5 ? 1 : -1) * 6;
+          caughtFish.vy = 8;
+          setTimeout(() => { caughtFish.isPanic = false; caughtFish.vx *= 0.2; caughtFish.vy *= 0.2; }, 3000);
+          
+          const chat = chatBank.escapeEvent[Math.floor(Math.random() * chatBank.escapeEvent.length)];
+          playChat(chat);
+          
+          } else {
+          caughtFish.moveToPlate();
+          speedMultiplier = 3.5;
+          if(speedTimer) clearTimeout(speedTimer);
+          speedTimer = setTimeout(() => { speedMultiplier = 1; }, 3000);
+          
+          const chat = chatBank.catchEvent[Math.floor(Math.random() * chatBank.catchEvent.length)];
+          playChat(chat);
+          }
+          
+          net.classList.remove('catching');
+          net.style.left = oldX;
+          net.style.top = oldY;
+          setTimeout(() => { 
+          net.style.transition = 'top 0.1s, left 0.1s'; 
+          isCatching = false;
+          }, 500);
+          }, 600);
+        } else {
+          setTimeout(() => { 
+          net.classList.remove('catching'); 
+          isCatching = false;
+          }, 300);
+        }
+    });
+
+    function spawnSeaweed() {
+        let seaweeds = creatures.filter(f => f.type === 'seaweed' && f.state === 'pool');
+        if (seaweeds.length < 6) {
+          let existingX = seaweeds.map(f => f.x);
+          let newX;
+          let attempts = 0;
+          do {
+          newX = Math.random() * (screen.offsetWidth - 40) + 10;
+          attempts++;
+          } while(existingX.some(x => Math.abs(x - newX) < 45) && attempts < 20);
+          
+          creatures.push(new SeaCreature(true, newX));
+        }
+    }
+    
+    for(let i=0; i<6; i++) spawnSeaweed();
+    setInterval(spawnSeaweed, 10000);
+
+    for(let i=0; i<7; i++) creatures.push(new SeaCreature(false));
+
+})();
+</script>
+</body>
+</html>
+

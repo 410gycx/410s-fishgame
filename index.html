@@ -3,63 +3,476 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>捞鱼小游戏</title>
+<title>大穹捞鱼机</title>
 <style>
-*{box-sizing:border-box;}
-html,body{
-  width:100%;height:100%;
-  margin:0;padding:0;
-  background:#1a1a1a;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-family:'Microsoft YaHei',sans-serif;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #fce4ec;
+  overflow: hidden;
 }
 
 .arcade-wrapper {
-  width:100%;
-  height:100%;
-  max-width:480px;
-  max-height:800px;
-  margin:0 auto;
-  padding:10px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+  width: 100%;
+  height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  font-family: 'Microsoft YaHei', sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .arcade-shell {
-  background:#ffb7b2;
-  border:4px solid #111;
-  border-radius:30px;
-  padding:15px;
-  box-shadow:
-    inset -6px -6px 0 rgba(0,0,0,0.1),
-    inset 6px 6px 0 rgba(255,255,255,0.4),
-    6px 8px 0 #111;
-  position:relative;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  width:100%;
-  aspect-ratio:9/16;
+  background: #ffb7b2;
+  border: 4px solid #111;
+  border-radius: 30px;
+  padding: 20px 15px 30px;
+  box-shadow: 
+    inset -8px -8px 0 rgba(0,0,0,0.1),
+    inset 8px 8px 0 rgba(255,255,255,0.4),
+    8px 10px 0 #111;
+  width: 96%;
+  height: auto;
+  aspect-ratio: 9/16;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .arcade-header {
-  width:60px;
-  height:10px;
-  background:#111;
-  border-radius:10px;
-  margin-bottom:10px;
+  width: 60px;
+  height: 10px;
+  background: #111;
+  border-radius: 10px;
+  margin-bottom: 15px;
 }
 
 .screen-bezel {
-  width:100%;
-  background:#e2f0cb;
-  border:4px solid #111;
-  border-radius:15px;
-  padding:8px;
-  flex:1;
+  width: 100%;
+  flex: 1;
+  background: #e2f0cb;
+  border: 4px solid #111;
+  border-radius: 15px;
+  padding: 10px;
+  box-shadow: inset 4px 4px 0 rgba(0,0,0,0.1);
+  display: flex;
+}
+
+.screen {
+  width: 100%;
+  height: 100%;
+  background: url('https://img.heliar.top/file/1773332850723_IMG_20260313_002655.jpg') center/cover no-repeat;
+  border: 3px solid #111;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden; 
+}
+
+.cloud {
+  position: absolute;
+  filter: drop-shadow(2px 0 0 #111) drop-shadow(-2px 0 0 #111) drop-shadow(0 2px 0 #111) drop-shadow(0 -2px 0 #111);
+  opacity: 0.9;
+  z-index: 1;
+}
+.cloud-base {
+  width: 60px; height: 25px; background: white; border-radius: 20px; position: absolute; top: 15px; left: 0;
+}
+.cloud-bump1 {
+  width: 30px; height: 30px; background: white; border-radius: 50%; position: absolute; top: 0px; left: 10px;
+}
+.cloud-bump2 {
+  width: 25px; height: 25px; background: white; border-radius: 50%; position: absolute; top: 5px; left: 30px;
+}
+.c1 { top: 20px; left: 30px; transform: scale(0.9); }
+.c2 { top: 30px; left: 140px; transform: scale(0.7); }
+
+.sun {
+  position: absolute;
+  top: -30px; 
+  right: -20px; 
+  width: 60px; 
+  height: 60px; 
+  background: #ffca3a;
+  border-radius: 50%;
+  border: 4px solid #111;
+  z-index: 1;
+}
+
+.sun::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 120%;
+  transform: translate(-50%, -50%);
+  border: 3px dashed #ffca3a;
+  border-radius: 50%;
+}
+
+.chars-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none; 
+}
+
+@keyframes rolyPolyLeft {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(4deg); }
+}
+@keyframes rolyPolyRight {
+  0%, 100% { transform: rotate(8deg); }
+  50% { transform: rotate(-4deg); }
+}
+
+.char-box {
+  position: absolute;
+  transform-origin: bottom center;
+  pointer-events: auto;
+}
+
+.char-box.xianyun {
+  left: 5%; 
+  bottom: 28%; 
+  width: 40%; 
+  height: 70%; 
+  animation: rolyPolyLeft 3s ease-in-out infinite;
+}
+
+.char-box.wuqiong {
+  right: 5%; 
+  bottom: 31%; 
+  width: 50%; 
+  height: 70%; 
+  animation: rolyPolyRight 3.2s ease-in-out infinite;
+}
+
+.plate {
+  position: absolute;
+  bottom: 44%; 
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 40px;
+  background: #fdfdfd;
+  border: 3px solid #111;
+  border-radius: 50%;
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1), 0 4px 0 rgba(0,0,0,0.2);
+  z-index: 3;
+}
+
+.pool {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 50%; 
+  background: #a2e8f5;
+  border-top: 4px solid #111;
+  z-index: 4;
+  overflow: hidden;
+}
+
+.char-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
+.dialog {
+  position: absolute;
+  top: 15%; 
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 2px solid #111;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #111;
+  white-space: pre-wrap;
+  max-width: 130px;
+  width: max-content;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 2px 2px 0 #111;
+}
+
+.dialog::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 5px 0;
+  border-style: solid;
+  border-color: #111 transparent transparent transparent;
+}
+
+.heart-pop {
+  position: absolute;
+  font-size: 24px;
+  pointer-events: none;
+  z-index: 20;
+  animation: floatUp 1s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -40px) scale(1.5); }
+}
+
+.pool::before {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: 5px;
+  left: -50%;
+  background: rgba(255,255,255,0.3);
+  border-radius: 40%;
+  animation: wave-anim 6s linear infinite;
+  pointer-events: none;
+}
+
+.pool::after {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: 15px;
+  left: -50%;
+  background: rgba(255,255,255,0.2);
+  border-radius: 45%;
+  animation: wave-anim 8s linear infinite reverse;
+  pointer-events: none;
+}
+
+@keyframes wave-anim {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes seaweed-sway {
+  0%, 100% { transform: rotate(-8deg) scaleY(1.1) skewX(-2deg); }
+  50% { transform: rotate(8deg) scaleY(1.2) skewX(2deg); }
+}
+
+.fish {
+  position: absolute;
+  font-size: 26px !important;
+  cursor: grab;
+  user-select: none;
+  z-index: 5;
+  text-shadow: 1px 1px 0 #111, -1px -1px 0 #111, 1px -1px 0 #111, -1px 1px 0 #111;
+  transition: transform 0.2s;
+}
+
+.fish.seaweed {
+  font-size: 28px !important;
+  filter: hue-rotate(-10deg) brightness(1.1);
+  animation: seaweed-sway 4s ease-in-out infinite;
+  transform-origin: bottom center;
+  z-index: 4;
+}
+
+.fish:active { cursor: grabbing; }
+
+.fish.dead {
+  filter: grayscale(1) brightness(1.2) contrast(0.8);
+  transform: scaleY(-1) !important;
+}
+
+.net {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  top: 20px;
+  left: 50px;
+  border: 3px solid #111;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  box-shadow: 0 0 0 2px #fff, inset 0 0 5px rgba(0,0,0,0.2);
+  z-index: 6;
+  pointer-events: none;
+  transition: top 0.1s, left 0.1s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.net::after {
+  content: '';
+  position: absolute;
+  top: -400px;
+  left: 20px;
+  width: 4px;
+  height: 400px;
+  background: #111;
+}
+
+.net.catching {
+  background: rgba(178, 247, 239, 0.7);
+  border-color: #ff0054;
+}
+
+.control-panel {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 25px;
+  padding: 0 10px;
+}
+
+.dpad {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  background: #e2f0cb;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 2px 2px 5px rgba(255,255,255,0.7), 0 4px 0 #111;
+  border: 3px solid #111;
+}
+
+.cross {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.cross-v, .cross-h {
+  position: absolute;
+  background: #333;
+  border-radius: 4px;
+  box-shadow: inset 2px 2px 0 rgba(255,255,255,0.2), 0 3px 0 #111;
+  border: 2px solid #111;
+}
+
+.cross-v { top: 0; left: 25px; width: 30px; height: 80px; }
+.cross-h { top: 25px; left: 0; width: 80px; height: 30px; }
+
+.dbtn {
+  position: absolute;
+  z-index: 2;
+  cursor: pointer;
+  background: transparent;
+}
+
+.up { top: -10px; left: 25px; width: 30px; height: 40px; }
+.down { bottom: -10px; left: 25px; width: 30px; height: 40px; }
+.left { top: 25px; left: -10px; width: 40px; height: 30px; }
+.right { top: 25px; right: -10px; width: 40px; height: 30px; }
+
+.action-btns {
+  display: flex;
+  gap: 15px;
+  transform: rotate(-15deg);
+}
+
+.abtn {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: 3px solid #111;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  color: #111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset -2px -4px 0 rgba(0,0,0,0.2), inset 2px 2px 0 rgba(255,255,255,0.5), 0 6px 0 #111;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.abtn:active {
+  transform: translateY(6px);
+  box-shadow: inset -2px -4px 0 rgba(0,0,0,0.2), inset 2px 2px 0 rgba(255,255,255,0.5), 0 0 0 #111;
+}
+
+.btn-b { background: #ffca3a; margin-top: 20px; }
+.btn-a { background: #ff595e; }
+</style>
+</head>
+<body>
+
+<div class="arcade-wrapper">
+<div class="arcade-shell">
+<div class="arcade-header"></div>
+<div class="screen-bezel">
+<div class="screen" id="gameScreen">
+<div class="cloud c1">
+<div class="cloud-base"></div>
+<div class="cloud-bump1"></div>
+<div class="cloud-bump2"></div>
+</div>
+<div class="cloud c2">
+<div class="cloud-base"></div>
+<div class="cloud-bump1"></div>
+<div class="cloud-bump2"></div>
+</div>
+<div class="sun"></div>
+<div class="chars-layer">
+<div class="char-box xianyun" id="boxXianyun">
+<div class="dialog" id="dlgXianyun"></div>
+<img class="char-img" src="https://img.heliar.top/file/1773332699215_3959.png">
+</div>
+<div class="char-box wuqiong" id="boxWuqiong">
+<div class="dialog" id="dlgWuqiong"></div>
+<img class="char-img" src="https://img.heliar.top/file/1773332702493_1552.png">
+</div>
+</div>
+<div class="plate" id="gamePlate"></div>
+<div class="net" id="gameNet"></div>
+<div class="pool" id="gamePool"></div>
+</div>
+</div>
+<div class="control-panel">
+<div class="dpad">
+<div class="cross">
+<div class="cross-v"></div>
+<div class="cross-h"></div>
+</div>
+<div class="dbtn up" id="btnUp"></div>
+<div class="dbtn down" id="btnDown"></div>
+<div class="dbtn left" id="btnLeft"></div>
+<div class="dbtn right" id="btnRight"></div>
+</div>
+<div class="action-btns">
+<div class="abtn btn-b" id="btnB">投</div>
+<div class="abtn btn-a" id="btnA">捞</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
   display:flex;
 }
 

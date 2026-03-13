@@ -385,6 +385,7 @@ html, body {
     let isCatching = false;
     
     let xianyunPoisoned = false;
+    let xianyunAlertNextFeed = false; // 新增：下次喂食先警惕
     let xianyunEatCount = 0;
     let xianyunNormalEatCount = 0;
     let xianyunFullBlock = false;
@@ -486,7 +487,7 @@ html, body {
           const chat = chatBank.idle[Math.floor(Math.random() * chatBank.idle.length)];
           playChat(chat);
         }
-    }, 2500);
+    }, 2000);
 
     function triggerFishingChat() {
         const now = Date.now();
@@ -589,58 +590,51 @@ html, body {
             plate.appendChild(this.el);
             this.el.style.position = 'absolute';
 
-            // 三层配置：第一层6、第二层4、第三层3
             const layers = [
                 { max: 6, widthPercent: 0.7, offsetY: 0 },
                 { max: 4, widthPercent: 0.5, offsetY: -18 },
                 { max: 3, widthPercent: 0.3, offsetY: -36 }
             ];
-            const totalMax = layers.reduce((sum, l) => sum + l.max, 0);
             const plateRect = plate.getBoundingClientRect();
             const plateWidth = plateRect.width;
 
             let targetLayer = null;
             let targetSlot = null;
 
-            // 先找有空位的层（优先填满，不替换）
+            // 永远优先找空位：空哪层补哪层，拿走后自动恢复堆叠
             for (let i = 0; i < layers.length; i++) {
-                const count = plateStack.filter(f => f.layer === i).length;
-                if (count < layers[i].max) {
+                const cnt = plateStack.filter(f => f.layer === i).length;
+                if (cnt < layers[i].max) {
                     targetLayer = i;
-                    targetSlot = count;
+                    targetSlot = cnt;
                     break;
                 }
             }
 
-            // 三层全满 → 随机替换任意一层任意一条
+            // 全满才随机替换任意一条
             if (targetLayer === null) {
-                const randomIndex = Math.floor(Math.random() * plateStack.length);
-                const replacedFish = plateStack[randomIndex];
-                targetLayer = replacedFish.layer;
-                targetSlot = replacedFish.slot;
-
-                // 移除被替换的鱼
-                replacedFish.el.remove();
-                plateStack.splice(randomIndex, 1);
+                const ri = Math.floor(Math.random() * plateStack.length);
+                const old = plateStack[ri];
+                targetLayer = old.layer;
+                targetSlot = old.slot;
+                old.el.remove();
+                plateStack.splice(ri, 1);
             }
 
-            // 摆放当前鱼
             const layer = layers[targetLayer];
-            const availableWidth = plateWidth * layer.widthPercent;
-            const slotX = (targetSlot / (layer.max - 1 || 1) - 0.5) * availableWidth;
-            const randomX = (Math.random() - 0.5) * (availableWidth * 0.15);
-            const finalX = slotX + randomX;
-            const randomRot = (Math.random() - 0.5) * 30;
+            const w = plateWidth * layer.widthPercent;
+            const slotX = (targetSlot / (layer.max - 1 || 1) - 0.5) * w;
+            const rx = (Math.random() - 0.5) * w * 0.15;
+            const rot = (Math.random() - 0.5) * 30;
 
-            this.el.style.left = `calc(50% + ${finalX}px)`;
+            this.el.style.left = `calc(50% + ${slotX + rx}px)`;
             this.el.style.top = `calc(50% + ${layer.offsetY}px)`;
-            this.el.style.transform = `translate(-50%, -50%) rotate(${randomRot}deg)`;
+            this.el.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
             if (this.dead) this.el.style.transform += ' scaleY(-1)';
 
             this.layer = targetLayer;
             this.slot = targetSlot;
             plateStack.push(this);
-
             this.stopDeathTimer();
         }
 
@@ -675,14 +669,7 @@ html, body {
 
                 if (xianyunFullBlock) {
                     if (!xianyunFeedRetry) {
-                        const dialogs = [
-                            { s1: 'x', t1: "好撑，歇一会..." },
-                            { s1: 'x', t1: "肚子圆滚滚的，真的吃不下了..." },
-                            { s1: 'x', t1: "不行了，再吃要撑吐了……" },
-                            { s1: 'x', t1: "今天真的到此为止！再也不想看见鱼了…" }
-                        ];
-                        const randIndex = Math.floor(Math.random() * dialogs.length);
-                        showDialog(dialogs[randIndex].s1, dialogs[randIndex].t1);
+                        showDialog('x', "好撑，吃不下了…");
                         xianyunFeedRetry = true;
                         this.moveToPlate();
                         return;
@@ -697,87 +684,82 @@ html, body {
                     this.el.remove();
                     const i = creatures.indexOf(this);
                     if(i > -1) creatures.splice(i, 1);
+
                     if (this.type === 'seaweed') {
-                        playChat({ s1: 'x', t1: "呸呸呸！这水草一点味道都没有！", s2: 'w', t2: "乖，别乱吃水底的杂草。" });
+                        playChat({ s1: 'x', t1: "呸呸呸！这水草一点味道都没有！" });
                         return;
                     }
-                    if (this.type === 'jellyfish') {
-                        if (xianyunPoisoned) {
-                            playChat({ s1: 'x', t1: "yue！！果然又有毒！！！🤢", s2: 'w', t2: "吐出来，快点。" });
-                            xianyunPoisoned = false;
-                        } else {
-                            playChat({ s1: 'x', t1: "警惕...不会又吃到什么奇怪的东西吧？", s2: 'w', t2: "别怕，有我在。" });
-                            xianyunPoisoned = true;
-                        }
-                        xianyunNormalEatCount = 0;
-                    } else if (this.dead) {
-                        const c = chatBank.eatDead[Math.floor(Math.random()*chatBank.eatDead.length)];
-                        playChat(c);
+
+                    // ====================== 修复水母逻辑 ======================
+                    if (xianyunAlertNextFeed) {
+                        // 先触发警惕
+                        playChat({ s1: 'x', t1: "警惕...不会又吃到什么奇怪的东西吧？", s2: 'w', t2: "别怕，有我在。" });
+                        xianyunAlertNextFeed = false;
                         xianyunPoisoned = false;
                         xianyunNormalEatCount = 0;
+                        setTimeout(() => {
+                            // 警惕完再正常判断
+                            if (this.type === 'jellyfish') {
+                                playChat({ s1: 'x', t1: "yue！！果然又有毒！！！🤢" });
+                                xianyunPoisoned = true;
+                                xianyunAlertNextFeed = true;
+                            } else if (this.dead) {
+                                const c = chatBank.eatDead[Math.floor(Math.random() * chatBank.eatDead.length)];
+                                playChat(c);
+                            } else {
+                                if (this.type === 'shrimp') {
+                                    const c = chatBank.eatShrimp[Math.floor(Math.random() * chatBank.eatShrimp.length)];
+                                    playChat(c);
+                                    popHeart(xRect.left + xRect.width/2 - screen.getBoundingClientRect().left, xRect.top - screen.getBoundingClientRect().top);
+                                } else {
+                                    const c = chatBank.eatLive[Math.floor(Math.random() * chatBank.eatLive.length)];
+                                    playChat(c);
+                                }
+                                xianyunNormalEatCount++;
+                            }
+                        }, 1200);
                     } else {
-                        xianyunPoisoned = false;
-                        if (this.type === 'shrimp') {
-                            const c = chatBank.eatShrimp[Math.floor(Math.random()*chatBank.eatShrimp.length)];
-                            playChat(c);
-                            popHeart(xRect.left + xRect.width/2 - screen.getBoundingClientRect().left, xRect.top - screen.getBoundingClientRect().top);
-                            xianyunNormalEatCount++;
-                        } else {
-                            const c = chatBank.eatLive[Math.floor(Math.random()*chatBank.eatLive.length)];
-                            playChat(c);
-                            xianyunNormalEatCount++;
-                        }
-                        if (xianyunNormalEatCount >= 5) {
-                            setTimeout(() => {
-                                popHeart(xRect.left + xRect.width/2 - screen.getBoundingClientRect().left, xRect.top - screen.getBoundingClientRect().top);
-                                const dialogs = [
-                                    { s1: 'x', t1: "太好吃了！我给吃美了！", s2: 'w', t2: "小美人高兴就好。" },
-                                    { s1: 'x', t1: "这个味道绝了！我直接爱上！", s2: 'w', t2: "嗯，看你吃我都觉得香。" },
-                                    { s1: 'x', t1: "好吃哭了！这才是生活！", s2: 'w', t2: "慢点吃，没人跟你抢。" }
-                                ];
-                                const randIndex = Math.floor(Math.random() * dialogs.length);
-                                playChat(dialogs[randIndex]);
-                            }, 1000);
+                        if (this.type === 'jellyfish') {
+                            playChat({ s1: 'x', t1: "呸！好苦！这水母有毒！！！🤢" });
+                            xianyunPoisoned = true;
+                            xianyunAlertNextFeed = true;
                             xianyunNormalEatCount = 0;
+                        } else if (this.dead) {
+                            const c = chatBank.eatDead[Math.floor(Math.random() * chatBank.eatDead.length)];
+                            playChat(c);
+                            xianyunPoisoned = false;
+                            xianyunNormalEatCount = 0;
+                        } else {
+                            xianyunPoisoned = false;
+                            if (this.type === 'shrimp') {
+                                const c = chatBank.eatShrimp[Math.floor(Math.random() * chatBank.eatShrimp.length)];
+                                playChat(c);
+                                popHeart(xRect.left + xRect.width/2 - screen.getBoundingClientRect().left, xRect.top - screen.getBoundingClientRect().top);
+                                xianyunNormalEatCount++;
+                            } else {
+                                const c = chatBank.eatLive[Math.floor(Math.random() * chatBank.eatLive.length)];
+                                playChat(c);
+                                xianyunNormalEatCount++;
+                            }
                         }
                     }
+                    // ==========================================================
+
                     xianyunEatCount++;
                     if (xianyunEatCount >= 11) {
                         xianyunFullBlock = true;
-                        setTimeout(() => {
-                            playChat({ 
-                                s1: 'x', t1: "吃不下了…好撑...", 
-                                s2: 'w', t2: "那我替你揉揉肚子，怎么样？", 
-                                s3: 'x', t3: "十动然拒！" 
-                            });
-                        }, 1000);
                     }
                     return;
                 }
 
                 if(fCenterX > wRect.left && fCenterX < wRect.right && fCenterY > wRect.top && fCenterY < wRect.bottom) {
                     if (this.type === 'seaweed') {
-                        const dialogs = [
-                            { s1: 'w', t1: "味道真怪...我是陆地鸟啊...", s2: 'x', t2: "哈哈哈哈家主大人你也有今天！" },
-                            { s1: 'w', t1: "呸...这什么水草，苦死了。", s2: 'x', t2: "谁让你乱吃！快吐出来！" },
-                            { s1: 'w', t1: "又涩又苦，这草谁爱吃谁吃。", s2: 'x', t2: "叫你乱尝，no作no带没听过吗？给我看看。" },
-                            { s1: 'w', t1: "太难吃了，我嘴都麻了。", s2: 'x', t2: "家主大人，手欠是一种病。" }
-                        ];
-                        const randIndex = Math.floor(Math.random() * dialogs.length);
-                        playChat(dialogs[randIndex]);
+                        playChat({ s1: 'w', t1: "味道真怪...我是陆地鸟啊..." });
                         this.el.remove();
                         const idx = creatures.indexOf(this);
                         if(idx > -1) creatures.splice(idx, 1);
                     } else if (this.type === 'shrimp') {
-                        const dialogs = [
-                            { s1: 'w', t1: "哎呀小美人，你知道我不碰带壳的。", s2: 'x', t2: "啧，家主大人真挑食。", s3: 'w', t3: "你说虾怎么做比较好吃？" },
-                            { s1: 'w', t1: "我对虾没兴趣，你自己吃吧。", s2: 'x', t2: "行，那我就不客气了！", s3: 'w', t3: "慢点吃，别噎着。" },
-                            { s1: 'w', t1: "我不吃带壳的，太麻烦。", s2: 'x', t2: "挑食鬼，这可香了！", s3: 'w', t3: "那你多吃点。" },
-                            { s1: 'w', t1: "我就看着你吃，自己没兴趣。", s2: 'x', t2: "那我全吃光了。", s3: 'w', t3: "没人跟你抢。" }
-                        ];
-                        const randIndex = Math.floor(Math.random() * dialogs.length);
-                        playChat(dialogs[randIndex]);
-                        setTimeout(() => showDialog('x', "红烧！白灼！油炸！"), 4800);
+                        playChat({ s1: 'w', t1: "我对虾没兴趣，你自己吃吧。" });
                         this.moveToPlate();
                     } else {
                         const c = chatBank.reject[Math.floor(Math.random()*chatBank.reject.length)];

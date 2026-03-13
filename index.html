@@ -588,20 +588,21 @@ html, body {
           if(this.deathTimer) clearTimeout(this.deathTimer);
         }
         
-        moveToPlate() {
+moveToPlate() {
   this.state = 'plate';
   this.el.classList.remove('seaweed');
   plate.appendChild(this.el);
   this.el.style.position = 'absolute';
 
-  // 分层配置：每层最多鱼数 + 垂直偏移
+  // 分层配置：每层最大数量 + 水平占比 + 垂直偏移
   const layers = [
-    { max: 5, offsetY: 0 },    // 第1层（底层）：5条，贴盘子
-    { max: 3, offsetY: -18 },  // 第2层：3条，往上18px
-    { max: 2, offsetY: -36 }   // 第3层：2条，再往上18px
+    { max: 6, widthPercent: 0.7, offsetY: 0 },   // 第1层：6条，占盘子70%宽度
+    { max: 4, widthPercent: 0.5, offsetY: -18 }  // 第2层：4条，占盘子50%宽度，上移18px
   ];
   let targetLayer = 0;
   let targetSlot = 0;
+  const plateRect = plate.getBoundingClientRect();
+  const plateWidth = plateRect.width;
 
   // 找到第一个有空位的层
   for (let i = 0; i < layers.length; i++) {
@@ -616,29 +617,34 @@ html, body {
       targetLayer = 0;
       const bottomLayerSlots = plateStack.filter(f => f.layer === 0);
       targetSlot = Math.floor(Math.random() * bottomLayerSlots.length);
-      // 把被替换的鱼挪到随机位置
+      // 被替换的鱼随机打散位置
       const replacedFish = bottomLayerSlots[targetSlot];
-      replacedFish.el.style.left = `calc(50% + ${(Math.random() - 0.5) * 25}px)`;
-      replacedFish.el.style.top = `calc(50% + ${layers[replacedFish.layer].offsetY + (Math.random() - 0.5) * 8}px)`;
-      replacedFish.el.style.transform = `translate(-50%, -50%) rotate(${(Math.random() - 0.5) * 40}deg)`;
+      const replacedX = (Math.random() - 0.5) * (plateWidth * layers[0].widthPercent);
+      replacedFish.el.style.left = `calc(50% + ${replacedX}px)`;
+      replacedFish.el.style.top = `calc(50% + ${layers[0].offsetY + (Math.random() - 0.5) * 5}px)`;
+      replacedFish.el.style.transform = `translate(-50%, -50%) rotate(${(Math.random() - 0.5) * 30}deg)`;
     }
   }
 
-  // 计算当前鱼的位置：层偏移 + 随机左右/旋转
-  const layerOffsetY = layers[targetLayer].offsetY;
-  const randomX = (Math.random() - 0.5) * (30 - targetLayer * 5); // 上层晃动更小
-  const randomRot = (Math.random() - 0.5) * (40 - targetLayer * 10);
+  // 计算当前鱼的平铺位置
+  const layer = layers[targetLayer];
+  const availableWidth = plateWidth * layer.widthPercent;
+  // 均匀分布 + 随机打散，让鱼铺得更开
+  const slotX = (targetSlot / (layer.max - 1) - 0.5) * availableWidth;
+  const randomX = (Math.random() - 0.5) * (availableWidth * 0.15); // 额外15%随机偏移
+  const finalX = slotX + randomX;
+  const randomRot = (Math.random() - 0.5) * 30; // 随机旋转
 
-  this.el.style.left = `calc(50% + ${randomX}px)`;
-  this.el.style.top = `calc(50% + ${layerOffsetY}px)`;
+  this.el.style.left = `calc(50% + ${finalX}px)`;
+  this.el.style.top = `calc(50% + ${layer.offsetY}px)`;
   this.el.style.transform = `translate(-50%, -50%) rotate(${randomRot}deg)`;
   if (this.dead) this.el.style.transform += ' scaleY(-1)';
 
-  // 记录当前鱼所在的层和槽位
+  // 记录层和槽位
   this.layer = targetLayer;
   this.slot = targetSlot;
 
-  // 更新堆叠数组：如果是替换底层，直接替换；否则push
+  // 更新堆叠数组
   if (targetLayer === 0 && plateStack.filter(f => f.layer === 0).length >= layers[0].max) {
     const replaceIndex = plateStack.findIndex(f => f.layer === 0 && f.slot === targetSlot);
     plateStack[replaceIndex] = this;

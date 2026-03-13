@@ -19,11 +19,11 @@ html, body {
   align-items: center;
   justify-content: center;
 }
+/* 固定游戏机 wrapper，防止拉伸 */
 .arcade-wrapper {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   max-width: 480px;
-  max-height: 95vh;
   margin: 0 auto;
   font-family: 'Microsoft YaHei', sans-serif;
   user-select: none;
@@ -31,7 +31,9 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
+/* 核心：固定 9:16 比例，永远不会被拉长 */
 .arcade-shell {
   background: #ffb7b2;
   border: 4px solid #111;
@@ -39,8 +41,9 @@ html, body {
   padding: 20px 15px 30px;
   box-shadow: inset -8px -8px 0 rgba(0,0,0,0.1), inset 8px 8px 0 rgba(255,255,255,0.4), 8px 10px 0 #111;
   width: 100%;
-  height: 100%;
-  aspect-ratio: 9/16;
+  max-width: 480px;
+  max-height: 95vh;
+  aspect-ratio: 9/16; /* 强制 9:16 比例，浏览器缩放时也不会变形 */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -120,18 +123,20 @@ html, body {
   transform-origin: bottom center;
   pointer-events: auto;
 }
+/* 东方纤云：往下 2% + 放大 5% */
 .char-box.xianyun {
   left: 5%;
-  bottom: 28%;
-  width: 40%;
-  height: 70%;
+  bottom: 30%; /* 原 28% → 30%，往下 2% */
+  width: 42%;    /* 原 40% → 42%，放大 5% */
+  height: 73.5%; /* 原 70% → 73.5%，放大 5% */
   animation: rolyPolyLeft 3s ease-in-out infinite;
 }
+/* 东方芜穹：往下 2% + 放大 5% */
 .char-box.wuqiong {
   right: 5%;
-  bottom: 29%;
-  width: 50%;
-  height: 70%;
+  bottom: 31%; /* 原 29% → 31%，往下 2% */
+  width: 52.5%; /* 原 50% → 52.5%，放大 5% */
+  height: 73.5%;/* 原 70% → 73.5%，放大 5% */
   animation: rolyPolyRight 3.2s ease-in-out infinite;
 }
 .char-img {
@@ -141,9 +146,10 @@ html, body {
   display: block;
   pointer-events: none;
 }
+/* 盘子：往上浮动 3% */
 .plate {
   position: absolute;
-  bottom: 44%;
+  bottom: 41%; /* 原 44% → 41%，往上 3% */
   left: 50%;
   transform: translateX(-50%);
   width: 100px;

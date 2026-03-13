@@ -19,7 +19,6 @@ html, body {
   align-items: center;
   justify-content: center;
 }
-/* 固定游戏机 wrapper，防止拉伸 */
 .arcade-wrapper {
   width: 100%;
   height: 100vh;
@@ -33,7 +32,6 @@ html, body {
   justify-content: center;
   flex-shrink: 0;
 }
-/* 核心：固定 9:16 比例，永远不会被拉长 */
 .arcade-shell {
   background: #ffb7b2;
   border: 4px solid #111;
@@ -43,7 +41,7 @@ html, body {
   width: 100%;
   max-width: 480px;
   max-height: 95vh;
-  aspect-ratio: 9/16; /* 强制 9:16 比例，浏览器缩放时也不会变形 */
+  aspect-ratio: 9/16;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -123,20 +121,18 @@ html, body {
   transform-origin: bottom center;
   pointer-events: auto;
 }
-/* 东方纤云：往下 2% + 放大 5% */
 .char-box.xianyun {
   left: 5%;
-  bottom: 25%; /* 原 28% → 30%，往下 2% */
-  width: 42%;    /* 原 40% → 42%，放大 5% */
-  height: 75%; /* 原 70% → 73.5%，放大 5% */
+  bottom: 30%;
+  width: 42%;
+  height: 73.5%;
   animation: rolyPolyLeft 3s ease-in-out infinite;
 }
-/* 东方芜穹：往下 2% + 放大 5% */
 .char-box.wuqiong {
   right: 5%;
-  bottom: 26%; /* 原 29% → 31%，往下 2% */
-  width: 52.5%; /* 原 50% → 52.5%，放大 5% */
-  height: 75%;/* 原 70% → 73.5%，放大 5% */
+  bottom: 31%;
+  width: 52.5%;
+  height: 73.5%;
   animation: rolyPolyRight 3.2s ease-in-out infinite;
 }
 .char-img {
@@ -146,10 +142,9 @@ html, body {
   display: block;
   pointer-events: none;
 }
-/* 盘子：往上浮动 3% */
 .plate {
   position: absolute;
-  bottom: 46%; /* 原 44% → 41%，往上 3% */
+  bottom: 41%;
   left: 50%;
   transform: translateX(-50%);
   width: 100px;
@@ -371,6 +366,9 @@ html, body {
 </div>
 </div>
 </div>
+<video id="bgmVideo" loop muted playsinline style="display:none;">
+  <source src="https://img.heliar.top/file/1773393290044_video_20260313_171256.mp4" type="video/mp4">
+</video>
 <script>
 (function(){
     const screen = document.getElementById('gameScreen');
@@ -381,6 +379,7 @@ html, body {
     const boxWuqiong = document.getElementById('boxWuqiong');
     const dlgXianyun = document.getElementById('dlgXianyun');
     const dlgWuqiong = document.getElementById('dlgWuqiong');
+    const bgmVideo = document.getElementById('bgmVideo');
 
     let netX = 130;
     let netY = 100;
@@ -515,7 +514,8 @@ html, body {
             this.icon = '🌿';
             this.el.classList.add('seaweed');
             this.x = spawnX !== null ? spawnX : Math.random() * (screen.offsetWidth - 40) + 10;
-            this.y = screen.offsetHeight - 32;
+            // 修复：海草固定在池底，不会飘到水面
+            this.y = pool.offsetHeight - 32;
             this.vx = 0;
             this.vy = 0;
             screen.appendChild(this.el);
@@ -910,48 +910,22 @@ html, body {
       creatures.push(new SeaCreature(false));
     }
 
-    // ========== 修正：海草固定在水底 ==========
-    function spawnSeaweed() {
-        let seaweeds = creatures.filter(f => f.type === 'seaweed' && f.state === 'pool');
-        if (seaweeds.length < 6) {
-          let existingX = seaweeds.map(f => f.x);
-          let newX;
-          let attempts = 0;
-          do {
-            // 修正：y 固定在 pool 底部，不再用 screen 高度
-            newX = Math.random() * (screen.offsetWidth - 40) + 10;
-            attempts++;
-          } while(existingX.some(x => Math.abs(x - newX) < 45) && attempts < 20);
-          creatures.push(new SeaCreature(true, newX));
-        }
-    }
-
-    // ========== 修正：音乐标签正确闭合 + 自动播放 ==========
-    <audio id="bgm" loop preload="auto" style="display:none;">
-      <source src="https://cdn.freesound.org/previews/750/750440_1176995-lq_64kb.mp3" type="audio/mpeg">
-    
-
-    <script>
-      // 自动播放 BGM（解决浏览器 autoplay 限制）
-      document.addEventListener('DOMContentLoaded', function() {
-        const bgm = document.getElementById('bgm');
-        bgm.volume = 0.4; // 音量 40%
-
-        function tryPlayBGM() {
-          bgm.play().catch(err => {
-            // 失败后 1 秒重试
-            setTimeout(tryPlayBGM, 1000);
-          });
-        }
-
-        // 首次点击才播放（符合浏览器规则）
-        document.addEventListener('click', function onFirstClick() {
-          tryPlayBGM();
-          document.removeEventListener('click', onFirstClick);
-        }, { once: true });
-      });
-    </script>
+    // ========== 自动播放视频BGM ==========
+    document.addEventListener('DOMContentLoaded', function() {
+      bgmVideo.volume = 0.4;
+      
+      // 首次交互后自动播放（解决浏览器限制）
+      function startBGM() {
+        bgmVideo.muted = false;
+        bgmVideo.play().catch(err => console.log("播放失败:", err));
+        document.removeEventListener('click', startBGM);
+        document.removeEventListener('touchstart', startBGM);
+      }
+      
+      document.addEventListener('click', startBGM, { once: true });
+      document.addEventListener('touchstart', startBGM, { once: true });
+    });
 })();
+</script>
 </body>
 </html>
-
